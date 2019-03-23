@@ -9,10 +9,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -352,11 +355,19 @@ public class MainFrame extends JFrame {
 				}
 				catch (MalformedURLException e1)
 				{
+					StringWriter sw = new StringWriter();
+					PrintWriter pw = new PrintWriter(sw);
+					e1.printStackTrace(pw);
+					String sStackTrace = sw.toString(); // stack trace as a string
+					System.out.println(sStackTrace);
 					navigateError("about:eurlmalform", "<br><br>The address <a href='"+textField.getText().trim().replace("'", "\\'")+"'>" + textField.getText().trim() + 
 							"</a><br>does not match any supported protocol."
 							+ "<br>It may have been mistyped."
 							+ "<br>Please ensure that the protocol is supported "
-							+ "<br>and that everything is spelled correctly.");
+							+ "<br>and that everything is spelled correctly.<br />&nbsp;<br />"
+							+ "Java stack trace:"
+							+"<br />&nbsp;<br />&nbsp;<br />"
+							+HtmlUtils.stringToHTMLString(sStackTrace));
 					//JOptionPane.showMessageDialog(null, "URL Is malformed:\n" + e1, "URL Malformed", JOptionPane.ERROR_MESSAGE);
 				}
 				catch (SAXException e1)
