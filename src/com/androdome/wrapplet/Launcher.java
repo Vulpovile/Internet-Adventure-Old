@@ -40,10 +40,10 @@ public class Launcher extends Applet implements AppletStub {
 			loadicon = new BufferedImage[24];
 			for (int i = 0; i < 24; i++)
 			{
-				this.loadicon[i] = ImageIO.read(Launcher.class.getResourceAsStream("/" + (i + 1) + ".png"));
+				this.loadicon[i] = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/" + (i + 1) + ".png"));
 				
 			}
-			this.loadjava = ImageIO.read(Launcher.class.getResourceAsStream("/wrapplet2.png"));
+			this.loadjava = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/wrapplet2.png"));
 
 		}
 		catch (IOException e)
