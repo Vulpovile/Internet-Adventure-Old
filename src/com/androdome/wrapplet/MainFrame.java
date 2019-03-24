@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Panel;
+import java.awt.ScrollPane;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -24,6 +25,9 @@ import javax.swing.JLabel;
 import java.awt.Color;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
 import javax.swing.JToolBar;
 import javax.swing.JButton;
 import javax.swing.UIManager;
@@ -33,7 +37,10 @@ import org.fit.cssbox.css.DOMAnalyzer;
 import org.fit.cssbox.demo.DOMSource;
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.BrowserCanvas;
+import org.fit.cssbox.layout.ElementBox;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -46,6 +53,9 @@ import java.awt.event.ActionEvent;
 import javax.swing.JProgressBar;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
 
 public class MainFrame extends JFrame {
 
@@ -53,7 +63,7 @@ public class MainFrame extends JFrame {
 	 * 
 	 */
 	ArrayList<Component> componentBinding = new ArrayList<Component>();
-	ArrayList<Box> boxBinding = new ArrayList<Box>();
+	ArrayList<Node> boxBinding = new ArrayList<Node>();
 	
 	public static double JAVA_VERSION = getVersion();
 
@@ -66,7 +76,7 @@ public class MainFrame extends JFrame {
 
 	JPanel panel = new JPanel();
 
-	JScrollPane scrollPane = new JScrollPane();
+	ScrollPane scrollPane = new ScrollPane();
 	private static final long serialVersionUID = 1L;
 	private Panel contentPane;
 	private JTextField textField;
@@ -131,7 +141,20 @@ public class MainFrame extends JFrame {
 		System.gc();
 	}
 	
-
+	private DefaultMutableTreeNode createBoxTree(Box root)
+	{
+	    DefaultMutableTreeNode ret = new DefaultMutableTreeNode(root);
+	    if (root instanceof ElementBox)
+	    {
+	        ElementBox el = (ElementBox) root;
+	        for (int i = el.getStartChild(); i < el.getEndChild(); i++)
+	        {
+	            ret.add(createBoxTree(el.getSubBox(i)));
+	        }
+	    }
+	    return ret;
+	}
+	
 	private void init() throws SAXException, IOException {
 		URL.setURLStreamHandlerFactory(new ConfigurableStreamHandlerFactory("about", new Handler()));
 		URL url = new URL("about:welcome");
@@ -151,25 +174,89 @@ public class MainFrame extends JFrame {
 															// style sheet
 		da.getStyleSheets();
 
-		browser = new BrowserCanvas(da.getRoot(), da, scrollPane.getViewport().getSize(), url);
+		browser = new BrowserCanvas(da.getRoot(), da, scrollPane.getSize(), url);
 		browser.setLayout(null);
 		// browser.getViewport();
 		//browser.createLayout(new java.awt.Dimension(30,30));
-		scrollPane.setBorder(new EtchedBorder());
-		scrollPane.setViewportView(browser);
+		//scrollPane.setBorder(new EtchedBorder());
+		scrollPane.add(browser);
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent componentEvent) {
 				//browser.setSize();
-				browser.updateLayout(scrollPane.getSize());
+				browser.createLayout(scrollPane.getSize());
 				for(int i = 0; i < componentBinding.size(); i++)
 				{
-					componentBinding.get(i).setLocation(boxBinding.get(i).getAbsoluteContentX(), boxBinding.get(i).getAbsoluteContentY());
-					componentBinding.get(i).setSize(boxBinding.get(i).getMinimalWidth(),boxBinding.get(i).getHeight());
+					Box box = browser.getViewport().getElementBoxByNode(boxBinding.get(i));
+					componentBinding.get(i).setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
+					componentBinding.get(i).setSize(box.getMinimalWidth(),box.getHeight());
 					componentBinding.get(i).validate();
 					
 				}
 			}
 		});
+		
+		
+		
+		browser.addMouseListener(new MouseListener()
+		{
+
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				DefaultMutableTreeNode node = HtmlUtils.locateBox(createBoxTree(browser.getViewport()), arg0.getX(), arg0.getY());
+		        if (node != null)
+		        {
+		        	Box box = (Box) node.getUserObject();
+		        	if(box.getParent() != null && box.getParent().getNode().getNodeName().equalsIgnoreCase("a"))
+		        	{
+		        		System.out.println("Yay!");
+		        		NamedNodeMap attr = box.getParent().getNode().getAttributes();
+		        		if(attr.getNamedItem("href") != null)
+		        		{
+		        			try
+							{
+								ConnectionHandler.navigate(MainFrame.this, new URL(browser.getBaseURL(), attr.getNamedItem("href").getNodeValue()).toString());
+							}
+							catch (MalformedURLException e)
+							{
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							catch (DOMException e)
+							{
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+		        		}
+		        	}
+		        }
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
+		
 		parseApplets(browser);
 	}
 	
@@ -221,7 +308,7 @@ public class MainFrame extends JFrame {
 		Applet applet = getApplet(name, arUrl, box.getNode().getAttributes().getNamedItem("code").getNodeValue(), params, cb);
 		appletContainer.add(applet);
 		this.componentBinding.add(appletContainer);
-		this.boxBinding.add(box);
+		this.boxBinding.add(box.getNode());
 		browser.add(appletContainer);
 		browser.redrawBoxes();
 		browser.revalidate();
@@ -249,6 +336,15 @@ public class MainFrame extends JFrame {
 		setTitle("Internet Adventure");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 520, 434);
+		
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		
+		JMenu mnFile = new JMenu("File");
+		menuBar.add(mnFile);
+		
+		JMenu mnBookmarks = new JMenu("Bookmarks");
+		menuBar.add(mnBookmarks);
 		contentPane = new Panel();
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
@@ -258,7 +354,7 @@ public class MainFrame extends JFrame {
 		panel_1.setLayout(new BorderLayout(0, 0));
 
 		JToolBar toolBar = new JToolBar();
-		panel_1.add(toolBar, BorderLayout.NORTH);
+		panel_1.add(toolBar, BorderLayout.CENTER);
 
 		JButton btnHome;
 		
@@ -283,6 +379,7 @@ public class MainFrame extends JFrame {
 		toolBar.add(btnHome);
 		
 		JToolBar toolBar_1 = new JToolBar();
+		toolBar_1.setBorder(new EmptyBorder(2,2,2,2));
 		panel_1.add(toolBar_1, BorderLayout.SOUTH);
 		
 				JLabel lblAddress = new JLabel("Address:");

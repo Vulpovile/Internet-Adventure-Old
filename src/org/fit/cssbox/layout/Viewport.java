@@ -20,7 +20,9 @@ package org.fit.cssbox.layout;
 
 import java.awt.*;
 import java.util.Vector;
+
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import cz.vutbr.web.css.CSSFactory;
 import cz.vutbr.web.css.TermNumeric.Unit;
@@ -282,6 +284,33 @@ public class Viewport extends BlockBox
                 Box child = ebox.getSubBox(i);
                 if (child instanceof ElementBox)
                     ret = recursiveFindElementBoxByName((ElementBox) child, name, case_sensitive);
+            }
+            return ret;
+        }
+    }
+
+	public Box getElementBoxByNode(Node node) {
+	    if (rootBox == null)
+	        return null;
+	    else
+	        return recursiveFindElementBoxByNode(rootBox, node);
+	}
+	
+    private ElementBox recursiveFindElementBoxByNode(ElementBox ebox, Node node)
+    {
+        boolean eq;
+            eq = ebox.getNode() == node;
+        
+        if (eq)
+            return ebox;
+        else
+        {
+            ElementBox ret = null;
+            for (int i = 0; i < ebox.getSubBoxNumber() && ret == null; i++)
+            {
+                Box child = ebox.getSubBox(i);
+                if (child instanceof ElementBox)
+                    ret = recursiveFindElementBoxByNode((ElementBox) child, node);
             }
             return ret;
         }

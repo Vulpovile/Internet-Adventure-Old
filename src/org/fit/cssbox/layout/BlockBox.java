@@ -34,7 +34,7 @@ import org.w3c.dom.*;
  *
  * @author  radek
  */
-public class BlockBox extends ElementBox
+public class BlockBox extends InlineBox
 {
     public static final CSSProperty.Float FLOAT_NONE = CSSProperty.Float.NONE;
     public static final CSSProperty.Float FLOAT_LEFT = CSSProperty.Float.LEFT;
