@@ -107,6 +107,7 @@ public class BrowserCanvas extends JPanel
      * for the resulting page), the viewport size is updated automatically.
      * @param dim the viewport size
      */
+    BoxFactory factory;
     public void createLayout(Dimension dim)
     {
         img = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
@@ -116,7 +117,7 @@ public class BrowserCanvas extends JPanel
         VisualContext ctx = new VisualContext(null);
         
         System.err.println("Creating boxes");
-        BoxFactory factory = new BoxFactory(decoder, baseurl);
+        factory = new BoxFactory(decoder, baseurl);
         factory.reset();
         viewport = factory.createViewportTree(root, ig, ctx, dim.width, dim.height);
         System.err.println("We have " + factory.next_order + " boxes");
@@ -145,6 +146,41 @@ public class BrowserCanvas extends JPanel
         viewport.draw(ig);
         setPreferredSize(new Dimension(img.getWidth(), img.getHeight()));
         revalidate();
+    }
+    
+    public void updateLayout(Dimension dim)
+    {
+    	
+    	 img = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
+         System.gc();
+         Graphics2D ig = img.createGraphics();
+
+         System.err.println("Layout for "+dim.width+"px");
+         viewport.setSize(dim.width, dim.height);
+         viewport.setContentHeight(dim.height);
+         viewport.initSubtree();
+         viewport.doLayout(dim.width, true, true);
+         System.err.println("Resulting size: " + viewport.getWidth() + "x" + viewport.getHeight() + " (" + viewport + ")");
+
+         System.err.println("Updating viewport size");
+         viewport.updateBounds();
+         System.err.println("Resulting size: " + viewport.getWidth() + "x" + viewport.getHeight() + " (" + viewport + ")");
+         
+         if (viewport.getWidth() > dim.width || viewport.getHeight() > dim.height)
+         {
+             img = new BufferedImage(Math.max(viewport.getWidth(), dim.width),
+                                     Math.max(viewport.getHeight(), dim.height),
+                                     BufferedImage.TYPE_INT_RGB);
+             ig = img.createGraphics();
+         }
+         
+         System.err.println("Positioning for "+img.getWidth()+"x"+img.getHeight()+"px");
+         viewport.absolutePositions();
+         
+         clearCanvas();
+         viewport.draw(ig);
+         setPreferredSize(new Dimension(img.getWidth(), img.getHeight()));
+         revalidate();
     }
     
     public void paintComponent(Graphics g) 

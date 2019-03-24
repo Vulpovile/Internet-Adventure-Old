@@ -40,6 +40,8 @@ import org.fit.cssbox.css.DOMAnalyzer;
 import org.fit.cssbox.demo.DOMSource;
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.BrowserCanvas;
+import org.fit.cssbox.layout.ComponentBox;
+import org.fit.cssbox.layout.ElementBox;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -55,6 +57,9 @@ public class MainFrame extends JFrame {
 	/**
 	 * 
 	 */
+	ArrayList<Component> componentBinding = new ArrayList<Component>();
+	ArrayList<Box> boxBinding = new ArrayList<Box>();
+	
 	public static double JAVA_VERSION = getVersion();
 
 	static double getVersion() {
@@ -116,17 +121,7 @@ public class MainFrame extends JFrame {
 	
 	private void navigateError(String string, String errHtml) {
 		try{
-		Component[] comps = browser.getComponents();
-		for (int i = 0; i < comps.length; i++)
-		{
-			if (comps[i] instanceof Applet)
-			{
-				Applet app = (Applet) comps[i];
-				app.stop();
-				app.destroy();
-			}
-		}
-		browser.removeAll();
+		clearComp();
 		URL url = new URL(string);
 		URLConnection con = url.openConnection();
 		InputStream is = con.getInputStream();
@@ -180,17 +175,7 @@ public class MainFrame extends JFrame {
 	}
 
 	public void navigate(URL url) throws SAXException, IOException {
-		Component[] comps = browser.getComponents();
-		for (int i = 0; i < comps.length; i++)
-		{
-			if (comps[i] instanceof Applet)
-			{
-				Applet app = (Applet) comps[i];
-				app.stop();
-				app.destroy();
-			}
-		}
-		browser.removeAll();
+		clearComp();
 		URLConnection con = url.openConnection();
 		InputStream is = con.getInputStream();
 
@@ -210,6 +195,23 @@ public class MainFrame extends JFrame {
 		browser.navigate(da.getRoot(), da, new java.awt.Dimension(scrollPane.getWidth(), scrollPane.getHeight()), url);
 		parseApplets(browser);
 		// scrollPane.setViewportView(browser);
+	}
+
+	private void clearComp() {
+		Component[] comps = browser.getComponents();
+		for (int i = 0; i < comps.length; i++)
+		{
+			if (comps[i] instanceof Applet)
+			{
+				Applet app = (Applet) comps[i];
+				app.stop();
+				app.destroy();
+			}
+		}
+		this.componentBinding.clear();
+		this.boxBinding.clear();
+		browser.removeAll();
+		System.gc();
 	}
 
 	private void init() throws SAXException, IOException {
@@ -234,18 +236,28 @@ public class MainFrame extends JFrame {
 		browser = new BrowserCanvas(da.getRoot(), da, scrollPane.getViewport().getSize(), url);
 		browser.setLayout(null);
 		// browser.getViewport();
-		// browser.createLayout(new java.awt.Dimension(30,30));
+		//browser.createLayout(new java.awt.Dimension(30,30));
 		scrollPane.setViewportView(browser);
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent componentEvent) {
-				browser.createLayout(scrollPane.getViewport().getSize());
+				//browser.setSize();
+				browser.updateLayout(scrollPane.getSize());
+				for(int i = 0; i < componentBinding.size(); i++)
+				{
+					if(box == boxBinding.get(i))
+					System.out.println("HUEAAYYAY" + boxBinding.get(i).getWidth());
+					componentBinding.get(i).setBounds(boxBinding.get(i).getAbsoluteBounds());
+					componentBinding.get(i).setSize(boxBinding.get(i).getWidth(),boxBinding.get(i).getHeight());
+					componentBinding.get(i).validate();
+					
+				}
 			}
 		});
 		parseApplets(browser);
 	}
-
+	ElementBox box;
 	public void parseApplets(BrowserCanvas browser) {
-		Box box = browser.getViewport().getElementBoxByName("applet", false);
+		box = browser.getViewport().getElementBoxByName("applet", false);
 		if (box == null)
 			return;
 		NodeList nodes = box.getNode().getChildNodes();
@@ -263,12 +275,12 @@ public class MainFrame extends JFrame {
 		JPanel appletContainer = new JPanel();
 		appletContainer.setLayout(new BorderLayout());
 
-		int width = Integer.parseInt(box.getNode().getAttributes().getNamedItem("width").getNodeValue());
+		//int width = Integer.parseInt(box.getNode().getAttributes().getNamedItem("width").getNodeValue());
 
-		int height = Integer.parseInt(box.getNode().getAttributes().getNamedItem("height").getNodeValue());
-		appletContainer.setLocation(browser.getWidth() / 2 - width / 2, 0);
-		box.setSize(width, height);
-		appletContainer.setSize(width, height);
+		//int height = Integer.parseInt(box.getNode().getAttributes().getNamedItem("height").getNodeValue());
+		appletContainer.setLocation(box.getContentX(), box.getContentY());
+		appletContainer.setSize(box.getWidth(), box.getHeight());
+		
 		String[] ar = box.getNode().getAttributes().getNamedItem("archive").getNodeValue().replace(" ", "").split(",");
 		URL[] arUrl = new URL[ar.length];
 		for (int i = 0; i < ar.length; i++)
@@ -290,6 +302,8 @@ public class MainFrame extends JFrame {
 			name = nameNode.getNodeValue();
 		Applet applet = getApplet(name, arUrl, box.getNode().getAttributes().getNamedItem("code").getNodeValue(), params, cb);
 		appletContainer.add(applet);
+		this.componentBinding.add(appletContainer);
+		this.boxBinding.add(box);
 		browser.add(appletContainer);
 		browser.redrawBoxes();
 		browser.revalidate();
