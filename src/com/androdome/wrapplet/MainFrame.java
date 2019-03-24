@@ -4,6 +4,7 @@ import java.applet.Applet;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Image;
+import java.awt.Panel;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -40,7 +41,6 @@ import org.fit.cssbox.css.DOMAnalyzer;
 import org.fit.cssbox.demo.DOMSource;
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.BrowserCanvas;
-import org.fit.cssbox.layout.ComponentBox;
 import org.fit.cssbox.layout.ElementBox;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -73,7 +73,7 @@ public class MainFrame extends JFrame {
 
 	JScrollPane scrollPane = new JScrollPane();
 	private static final long serialVersionUID = 1L;
-	private JPanel contentPane;
+	private Panel contentPane;
 	private JTextField textField;
 
 	BrowserCanvas browser = null;
@@ -334,12 +334,11 @@ public class MainFrame extends JFrame {
 
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
-		contentPane = new JPanel();
-		contentPane.setBorder(null);
+		contentPane = new Panel();
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
 
-		JPanel panel_1 = new JPanel();
+		Panel panel_1 = new Panel();
 		contentPane.add(panel_1, BorderLayout.NORTH);
 		panel_1.setLayout(new BorderLayout(0, 0));
 
