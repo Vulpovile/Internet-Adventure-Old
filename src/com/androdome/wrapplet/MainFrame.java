@@ -246,10 +246,8 @@ public class MainFrame extends JFrame {
 				browser.updateLayout(scrollPane.getSize());
 				for(int i = 0; i < componentBinding.size(); i++)
 				{
-					if(box == boxBinding.get(i))
-					System.out.println("HUEAAYYAY" + boxBinding.get(i).getWidth());
-					componentBinding.get(i).setBounds(boxBinding.get(i).getAbsoluteBounds());
-					componentBinding.get(i).setSize(boxBinding.get(i).getWidth(),boxBinding.get(i).getHeight());
+					componentBinding.get(i).setLocation(boxBinding.get(i).getAbsoluteContentX(), boxBinding.get(i).getAbsoluteContentY());
+					componentBinding.get(i).setSize(boxBinding.get(i).getMinimalWidth(),boxBinding.get(i).getHeight());
 					componentBinding.get(i).validate();
 					
 				}
@@ -257,9 +255,9 @@ public class MainFrame extends JFrame {
 		});
 		parseApplets(browser);
 	}
-	ElementBox box;
+	
 	public void parseApplets(BrowserCanvas browser) {
-		box = browser.getViewport().getElementBoxByName("applet", false);
+		Box box = browser.getViewport().getElementBoxByName("applet", false);
 		if (box == null)
 			return;
 		NodeList nodes = box.getNode().getChildNodes();
@@ -280,8 +278,9 @@ public class MainFrame extends JFrame {
 		//int width = Integer.parseInt(box.getNode().getAttributes().getNamedItem("width").getNodeValue());
 
 		//int height = Integer.parseInt(box.getNode().getAttributes().getNamedItem("height").getNodeValue());
-		appletContainer.setLocation(box.getContentX(), box.getContentY());
-		appletContainer.setSize(box.getWidth(), box.getHeight());
+		appletContainer.setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
+
+		appletContainer.setSize(box.getMinimalWidth(), box.getHeight());
 		
 		String[] ar = box.getNode().getAttributes().getNamedItem("archive").getNodeValue().replace(" ", "").split(",");
 		URL[] arUrl = new URL[ar.length];

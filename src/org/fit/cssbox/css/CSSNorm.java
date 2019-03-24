@@ -36,7 +36,7 @@ public class CSSNorm
     public static String stdStyleSheet()
     {
         return
-        "html, address,"+
+        "html, address,applet,"+
         "blockquote,"+
         "body, dd, div,"+
         "dl, dt, fieldset, form,"+
@@ -47,7 +47,7 @@ public class CSSNorm
         "dir, hr, menu, pre   { display: block }"+
         "li              { display: list-item }"+
         "head            { display: none }"+
-        "table           { display: table }"+
+        "table 		     { display: table }"+
         "tr              { display: table-row }"+
         "thead           { display: table-header-group }"+
         "tbody           { display: table-row-group }"+
@@ -62,7 +62,7 @@ public class CSSNorm
         "h1              { font-size: 2em; margin: .67em 0 }"+
         "h2              { font-size: 1.5em; margin: .75em 0 }"+
         "h3              { font-size: 1.17em; margin: .83em 0 }"+
-        "h4, p,"+
+        "h4, p"+
         /*"blockquote, ul,"+
         "fieldset, form,"+
         "ol, dl, dir,"+*/
