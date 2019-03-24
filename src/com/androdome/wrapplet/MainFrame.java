@@ -6,25 +6,17 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Panel;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
@@ -32,8 +24,6 @@ import javax.swing.JLabel;
 import java.awt.Color;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-
-import javax.swing.JMenuBar;
 import javax.swing.JToolBar;
 import javax.swing.JButton;
 import javax.swing.UIManager;
@@ -43,7 +33,6 @@ import org.fit.cssbox.css.DOMAnalyzer;
 import org.fit.cssbox.demo.DOMSource;
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.BrowserCanvas;
-import org.fit.cssbox.layout.ElementBox;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -53,6 +42,10 @@ import javax.swing.JScrollPane;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
+import javax.swing.JProgressBar;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.EmptyBorder;
 
 public class MainFrame extends JFrame {
 
@@ -77,7 +70,7 @@ public class MainFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private Panel contentPane;
 	private JTextField textField;
-
+	JLabel lblProg = new JLabel("Done.");
 	BrowserCanvas browser = null;
 
 	/**
@@ -121,85 +114,7 @@ public class MainFrame extends JFrame {
 		// "http://androdome.com/MPR/Applet/");
 	}
 	
-	private void navigateError(String string, String errHtml) {
-		try{
-		clearComp();
-		URL url = new URL(string);
-		URLConnection con = url.openConnection();
-		InputStream is = con.getInputStream();
-		String page = "";
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		String read;
-		while((read = reader.readLine()) != null)
-			page += read;
-		reader.close();
-		page = page.replace("$er", errHtml);
-		// Parse the input document (replace this with your own parser)
-		DOMSource parser = new DOMSource(new ByteArrayInputStream(page.getBytes("UTF-8")));
-		Document doc = parser.parse();
-
-		DOMAnalyzer da = new DOMAnalyzer(doc, url);
-		da.attributesToStyles(); // convert the HTML presentation attributes to
-									// inline styles
-		da.addStyleSheet(null, CSSNorm.stdStyleSheet()); // use the standard
-															// style sheet
-		da.addStyleSheet(null, CSSNorm.userStyleSheet()); // use the additional
-															// style sheet
-		da.getStyleSheets(); // load the author style sheets
-		// scrollPane.removeAll();
-		browser.navigate(da.getRoot(), da, new java.awt.Dimension(scrollPane.getWidth(), scrollPane.getHeight()), url);
-		parseApplets(browser);
-		// scrollPane.setViewportView(browser);
-		}
-		catch(Exception ex)
-		{
-			ex.printStackTrace();
-			try
-			{
-				navigate(new URL("about:econfailed"));
-			}
-			catch (MalformedURLException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			catch (SAXException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			catch (IOException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public void navigate(URL url) throws SAXException, IOException {
-		clearComp();
-		URLConnection con = url.openConnection();
-		InputStream is = con.getInputStream();
-
-		// Parse the input document (replace this with your own parser)
-		DOMSource parser = new DOMSource(is);
-		Document doc = parser.parse();
-
-		DOMAnalyzer da = new DOMAnalyzer(doc, url);
-		da.attributesToStyles(); // convert the HTML presentation attributes to
-									// inline styles
-		da.addStyleSheet(null, CSSNorm.stdStyleSheet()); // use the standard
-															// style sheet
-		da.addStyleSheet(null, CSSNorm.userStyleSheet()); // use the additional
-															// style sheet
-		da.getStyleSheets(); // load the author style sheets
-		// scrollPane.removeAll();
-		browser.navigate(da.getRoot(), da, new java.awt.Dimension(scrollPane.getWidth(), scrollPane.getHeight()), url);
-		parseApplets(browser);
-		// scrollPane.setViewportView(browser);
-	}
-
-	private void clearComp() {
+	void clearComp() {
 		Component[] comps = browser.getComponents();
 		for (int i = 0; i < comps.length; i++)
 		{
@@ -215,6 +130,7 @@ public class MainFrame extends JFrame {
 		browser.removeAll();
 		System.gc();
 	}
+	
 
 	private void init() throws SAXException, IOException {
 		URL.setURLStreamHandlerFactory(new ConfigurableStreamHandlerFactory("about", new Handler()));
@@ -239,6 +155,7 @@ public class MainFrame extends JFrame {
 		browser.setLayout(null);
 		// browser.getViewport();
 		//browser.createLayout(new java.awt.Dimension(30,30));
+		scrollPane.setBorder(new EtchedBorder());
 		scrollPane.setViewportView(browser);
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent componentEvent) {
@@ -397,42 +314,9 @@ public class MainFrame extends JFrame {
 								toolBar_1.add(btnNavigate);
 								btnNavigate.addActionListener(new ActionListener() {
 									public void actionPerformed(ActionEvent e) {
-										try
-										{
-											URL url = new URL(textField.getText().trim());
-											navigate(url);
-										}
-										catch (MalformedURLException e1)
-										{
-											StringWriter sw = new StringWriter();
-											PrintWriter pw = new PrintWriter(sw);
-											e1.printStackTrace(pw);
-											String sStackTrace = sw.toString(); // stack trace as a string
-											System.out.println(sStackTrace);
-											navigateError("about:eurlmalform", "<br><br>The address <a href='"+textField.getText().trim().replace("'", "\\'")+"'>" + textField.getText().trim() + 
-													"</a><br>does not match any supported protocol."
-													+ "<br>It may have been mistyped."
-													+ "<br>Please ensure that the protocol is supported "
-													+ "<br>and that everything is spelled correctly.<br />&nbsp;<br />"
-													+ "Java stack trace:"
-													+"<br />&nbsp;<br />&nbsp;<br />"
-													+HtmlUtils.stringToHTMLString(sStackTrace));
-											//JOptionPane.showMessageDialog(null, "URL Is malformed:\n" + e1, "URL Malformed", JOptionPane.ERROR_MESSAGE);
-										}
-										catch (SAXException e1)
-										{
-											// TODO Auto-generated catch block
-											//JOptionPane.showMessageDialog(null, "Failed to parse:\n" + e1, "Parse Error", JOptionPane.ERROR_MESSAGE);
-										}
-										catch (IOException e1)
-										{
-											try
-											{
-												navigate(new URL("about:econfailed"));
-											}
-											catch (Exception e2)
-											{}
-										}
+										String url = textField.getText().trim();
+										ConnectionHandler.navigate(MainFrame.this, url);
+										
 
 									}
 
@@ -440,6 +324,18 @@ public class MainFrame extends JFrame {
 								});
 
 		contentPane.add(scrollPane, BorderLayout.CENTER);
+		
+		JPanel panel_2 = new JPanel();
+		panel_2.setBorder(new EmptyBorder(2, 2, 2, 2));
+		contentPane.add(panel_2, BorderLayout.SOUTH);
+		panel_2.setLayout(new BorderLayout(0, 0));
+		
+		JProgressBar progressBar = new JProgressBar();
+		progressBar.setPreferredSize(new Dimension(120, 18));
+		panel_2.add(progressBar, BorderLayout.EAST);
+		
+
+		panel_2.add(lblProg, BorderLayout.WEST);
 
 		panel.setBorder(null);
 		panel.setBackground(Color.WHITE);
