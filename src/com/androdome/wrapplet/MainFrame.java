@@ -3,6 +3,7 @@ package com.androdome.wrapplet;
 import java.applet.Applet;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Panel;
 import java.io.BufferedReader;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -331,9 +333,6 @@ public class MainFrame extends JFrame {
 		setTitle("Internet Adventure");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 520, 434);
-
-		JMenuBar menuBar = new JMenuBar();
-		setJMenuBar(menuBar);
 		contentPane = new Panel();
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
@@ -342,67 +341,104 @@ public class MainFrame extends JFrame {
 		contentPane.add(panel_1, BorderLayout.NORTH);
 		panel_1.setLayout(new BorderLayout(0, 0));
 
-		textField = new JTextField();
-		panel_1.add(textField);
-		textField.setColumns(10);
-
-		JLabel lblAddress = new JLabel("Address:");
-		panel_1.add(lblAddress, BorderLayout.WEST);
-
 		JToolBar toolBar = new JToolBar();
 		panel_1.add(toolBar, BorderLayout.NORTH);
 
-		JButton btnBack = new JButton("Back");
-		toolBar.add(btnBack);
+		JButton btnHome;
+		
+		try
+		{
+			btnHome = new ImageButton(ImageIO.read(this.getClass().getResourceAsStream("/btn/home.png")),
+					ImageIO.read(this.getClass().getResourceAsStream("/btn/homeDn.png")),
+					ImageIO.read(this.getClass().getResourceAsStream("/btn/homeOvr.png")));
 
-		JButton btnFront = new JButton("Front");
-		toolBar.add(btnFront);
+			Dimension d = new Dimension(32,32);
+			btnHome.setSize(d);
+			btnHome.setPreferredSize(d);
+			btnHome.setMinimumSize(d);
+			btnHome.setMaximumSize(d);
+		}
+		catch (Exception e3)
+		{
+			btnHome = new JButton("Home");
+			e3.printStackTrace();
+		}
+		
+		toolBar.add(btnHome);
+		
+		JToolBar toolBar_1 = new JToolBar();
+		panel_1.add(toolBar_1, BorderLayout.SOUTH);
+		
+				JLabel lblAddress = new JLabel("Address:");
+				toolBar_1.add(lblAddress);
+				toolBar_1.addSeparator();
+						textField = new JTextField();
+						toolBar_1.add(textField);
 
-		JButton btnNavigate = new JButton("Navigate");
-		btnNavigate.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try
-				{
-					URL url = new URL(textField.getText().trim());
-					navigate(url);
-				}
-				catch (MalformedURLException e1)
-				{
-					StringWriter sw = new StringWriter();
-					PrintWriter pw = new PrintWriter(sw);
-					e1.printStackTrace(pw);
-					String sStackTrace = sw.toString(); // stack trace as a string
-					System.out.println(sStackTrace);
-					navigateError("about:eurlmalform", "<br><br>The address <a href='"+textField.getText().trim().replace("'", "\\'")+"'>" + textField.getText().trim() + 
-							"</a><br>does not match any supported protocol."
-							+ "<br>It may have been mistyped."
-							+ "<br>Please ensure that the protocol is supported "
-							+ "<br>and that everything is spelled correctly.<br />&nbsp;<br />"
-							+ "Java stack trace:"
-							+"<br />&nbsp;<br />&nbsp;<br />"
-							+HtmlUtils.stringToHTMLString(sStackTrace));
-					//JOptionPane.showMessageDialog(null, "URL Is malformed:\n" + e1, "URL Malformed", JOptionPane.ERROR_MESSAGE);
-				}
-				catch (SAXException e1)
-				{
-					// TODO Auto-generated catch block
-					//JOptionPane.showMessageDialog(null, "Failed to parse:\n" + e1, "Parse Error", JOptionPane.ERROR_MESSAGE);
-				}
-				catch (IOException e1)
-				{
-					try
-					{
-						navigate(new URL("about:econfailed"));
-					}
-					catch (Exception e2)
-					{}
-				}
+						toolBar_1.addSeparator();
+						textField.setColumns(10);
+						
+								JButton btnNavigate;
+								try
+								{
+									btnNavigate = new ImageButton(ImageIO.read(this.getClass().getResourceAsStream("/btn/navUp.png")),
+											ImageIO.read(this.getClass().getResourceAsStream("/btn/navDn.png")),
+											ImageIO.read(this.getClass().getResourceAsStream("/btn/navOvr.png")));
+									btnNavigate.setSize(32, 32);
+									Dimension d = new Dimension(22,22);
+									btnNavigate.setPreferredSize(d);
+									btnNavigate.setMinimumSize(d);
+									btnNavigate.setMaximumSize(d);
+								}
+								catch (Exception e3)
+								{
+									btnNavigate = new JButton("Navigate");
+									e3.printStackTrace();
+								}
+								toolBar_1.add(btnNavigate);
+								btnNavigate.addActionListener(new ActionListener() {
+									public void actionPerformed(ActionEvent e) {
+										try
+										{
+											URL url = new URL(textField.getText().trim());
+											navigate(url);
+										}
+										catch (MalformedURLException e1)
+										{
+											StringWriter sw = new StringWriter();
+											PrintWriter pw = new PrintWriter(sw);
+											e1.printStackTrace(pw);
+											String sStackTrace = sw.toString(); // stack trace as a string
+											System.out.println(sStackTrace);
+											navigateError("about:eurlmalform", "<br><br>The address <a href='"+textField.getText().trim().replace("'", "\\'")+"'>" + textField.getText().trim() + 
+													"</a><br>does not match any supported protocol."
+													+ "<br>It may have been mistyped."
+													+ "<br>Please ensure that the protocol is supported "
+													+ "<br>and that everything is spelled correctly.<br />&nbsp;<br />"
+													+ "Java stack trace:"
+													+"<br />&nbsp;<br />&nbsp;<br />"
+													+HtmlUtils.stringToHTMLString(sStackTrace));
+											//JOptionPane.showMessageDialog(null, "URL Is malformed:\n" + e1, "URL Malformed", JOptionPane.ERROR_MESSAGE);
+										}
+										catch (SAXException e1)
+										{
+											// TODO Auto-generated catch block
+											//JOptionPane.showMessageDialog(null, "Failed to parse:\n" + e1, "Parse Error", JOptionPane.ERROR_MESSAGE);
+										}
+										catch (IOException e1)
+										{
+											try
+											{
+												navigate(new URL("about:econfailed"));
+											}
+											catch (Exception e2)
+											{}
+										}
 
-			}
+									}
 
-			
-		});
-		panel_1.add(btnNavigate, BorderLayout.EAST);
+									
+								});
 
 		contentPane.add(scrollPane, BorderLayout.CENTER);
 
