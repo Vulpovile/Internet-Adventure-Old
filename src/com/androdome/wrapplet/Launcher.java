@@ -25,14 +25,20 @@ import javax.imageio.ImageIO;
 
 public class Launcher extends Applet implements AppletStub {
 	private static final long serialVersionUID = 1L;
-	public Map<String, String> customParameters = new HashMap<String, String>();
+	private Map<String, String> customParameters = new HashMap<String, String>();
 	private Applet applet;
 	String codebase;
 	boolean cancelled = false;
 	private static Image loadicon = null;
 	private static Image loadjava = null;
 	int icoindx = 0;
+	
+	
 
+	public void setParams(Map<String, String> param)
+	{
+		this.customParameters = param;
+	}
 	static
 	{
 		try
@@ -53,6 +59,7 @@ public class Launcher extends Applet implements AppletStub {
 	}
 
 	public Launcher() {
+		setBackground(Color.WHITE);
 		setLayout(new BorderLayout(0, 0));
 		this.validate();
 	}

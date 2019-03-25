@@ -16,6 +16,7 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -47,6 +48,8 @@ import org.xml.sax.SAXException;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
@@ -54,11 +57,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 
-public class MainFrame extends JFrame {
+public class MainFrame extends JFrame{
 
 	/**
 	 * 
 	 */
+
+	JProgressBar progressBar = new JProgressBar();
 	ArrayList<Component> componentBinding = new ArrayList<Component>();
 	ArrayList<Node> boxBinding = new ArrayList<Node>();
 
@@ -351,20 +356,15 @@ public class MainFrame extends JFrame {
 	 */
 	public MainFrame() {
 
-		ArrayList<Image> icons = new ArrayList<Image>();
 		try
 		{
-			icons.add(ImageIO.read(this.getClass().getResourceAsStream("/icon16.png")));
-			icons.add(ImageIO.read(this.getClass().getResourceAsStream("/icon32.png")));
-			icons.add(ImageIO.read(this.getClass().getResourceAsStream("/icon64.png")));
+			setIconImage(ImageIO.read(this.getClass().getResourceAsStream("/icon32.png")));
 		}
-		catch (IOException e2)
+		catch (IOException e1)
 		{
 			// TODO Auto-generated catch block
-			e2.printStackTrace();
+			e1.printStackTrace();
 		}
-		setIconImages(icons);
-
 		setTitle("Internet Adventure");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 520, 434);
@@ -453,7 +453,6 @@ public class MainFrame extends JFrame {
 		contentPane.add(panel_2, BorderLayout.SOUTH);
 		panel_2.setLayout(new BorderLayout(0, 0));
 
-		JProgressBar progressBar = new JProgressBar();
 		progressBar.setPreferredSize(new Dimension(120, 18));
 		panel_2.add(progressBar, BorderLayout.EAST);
 
@@ -524,7 +523,7 @@ public class MainFrame extends JFrame {
 		System.out.println(codeBase);
 		final Launcher launcher = new Launcher();
 		launcher.codebase = codeBase;
-		launcher.customParameters = params;
+		launcher.setParams(params);
 		launcher.startThread();
 		Thread th = new Thread() {
 			public void run() {
@@ -571,5 +570,4 @@ public class MainFrame extends JFrame {
 
 		return launcher;
 	}
-
 }

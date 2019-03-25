@@ -213,7 +213,6 @@ public class HTMLNorm
             	}
             	if (el.getAttributes().getNamedItem("width") != null)
             	{
-            		System.out.println("Found width!");
             		String width = el.getAttribute("width");
             			attrs = attrs + "width:"+width+"px;";
             	}
