@@ -65,6 +65,7 @@ public class MainFrame extends JFrame {
 	ArrayList<Component> componentBinding = new ArrayList<Component>();
 	ArrayList<Node> boxBinding = new ArrayList<Node>();
 	
+	
 	public static double JAVA_VERSION = getVersion();
 
 	static double getVersion() {
@@ -89,7 +90,7 @@ public class MainFrame extends JFrame {
 	 * @throws IOException
 	 * @throws SAXException
 	 */
-	public static void main(String[] args) throws IOException, SAXException {
+	public static void main(String[] args){
 		try
 		{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -102,29 +103,11 @@ public class MainFrame extends JFrame {
 		final MainFrame frame = new MainFrame();
 		frame.setVisible(true);
 		HashMap<String, String> params = new HashMap<String, String>();
-
-		params.put("al_title", "appletloadertest");
-		params.put("al_main", "com.mojang.minecraft.MinecraftApplet");
-		params.put("al_jars", "version/0.0.11a_02.jar, lwjgl.jar.pack.lzma, jinput.jar.pack.lzma, lwjgl_util.jar.pack.lzma");
-		params.put("al_windows", "windows_natives.jar.lzma");
-		params.put("al_linux", "linux_natives.jar.lzma");
-		params.put("al_mac", "macosx_natives.jar.lzma");
-		params.put("al_solaris", "solaris_natives.jar.lzma");
-		params.put("al_version", "0.0.11a_02");
-		params.put("boxbgcolor", "#000000");
-		params.put("boxfgcolor", "#ffffff");
-		params.put("separate_jvm", "true");
-
-		// Open the network connection
 		frame.init();
-		// frame.getApplet("LWJGL Applet", new URL[]{new
-		// URL("http://androdome.com/MPR/Applet/lwjgl_util_applet.jar"), new
-		// URL("http://androdome.com/MPR/Applet/lzma.jar")},
-		// "org.lwjgl.util.applet.AppletLoader", params,
-		// "http://androdome.com/MPR/Applet/");
 	}
 	
 	void clearComp() {
+		Thread.currentThread().setContextClassLoader(null);
 		Component[] comps = browser.getComponents();
 		for (int i = 0; i < comps.length; i++)
 		{
@@ -133,6 +116,7 @@ public class MainFrame extends JFrame {
 				Applet app = (Applet) comps[i];
 				app.stop();
 				app.destroy();
+				
 			}
 		}
 		this.componentBinding.clear();
@@ -155,9 +139,13 @@ public class MainFrame extends JFrame {
 	    return ret;
 	}
 	
-	private void init() throws SAXException, IOException {
+	private void init(){
 		URL.setURLStreamHandlerFactory(new ConfigurableStreamHandlerFactory("about", new Handler()));
-		URL url = new URL("about:welcome");
+		
+		try
+		{
+			URL url = new URL("about:welcome");
+		
 		URLConnection con = url.openConnection();
 		InputStream is = con.getInputStream();
 
@@ -179,6 +167,7 @@ public class MainFrame extends JFrame {
 		// browser.getViewport();
 		//browser.createLayout(new java.awt.Dimension(30,30));
 		//scrollPane.setBorder(new EtchedBorder());
+		
 		scrollPane.add(browser);
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent componentEvent) {
@@ -256,8 +245,22 @@ public class MainFrame extends JFrame {
 			}
 			
 		});
-		
-		parseApplets(browser);
+		}
+		catch (MalformedURLException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (SAXException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
 	
 	public void parseApplets(BrowserCanvas browser) {
@@ -278,7 +281,7 @@ public class MainFrame extends JFrame {
 		String cb = cbStarter;
 		JPanel appletContainer = new JPanel();
 		appletContainer.setLayout(new BorderLayout());
-
+		
 		//int width = Integer.parseInt(box.getNode().getAttributes().getNamedItem("width").getNodeValue());
 
 		//int height = Integer.parseInt(box.getNode().getAttributes().getNamedItem("height").getNodeValue());
@@ -462,9 +465,9 @@ public class MainFrame extends JFrame {
 		launcher.codebase = codeBase;
 		launcher.customParameters = params;
 		launcher.startThread();
-		new Thread() {
+		Thread th = new Thread() {
 			public void run() {
-				URLClassLoader loader = new URLClassLoader(archives);
+				URLClassLoader loader = new URLClassLoader(archives, null);
 				
 				AppletAcceptDialog dialog = new AppletAcceptDialog(name, archives, className, codeBase);
 				dialog.setVisible(true);
@@ -487,7 +490,8 @@ public class MainFrame extends JFrame {
 				Applet applet = createApplet(className, loader);
 				launcher.replace(applet);
 			}
-		}.start();
+		};
+		th.start();
 
 		return launcher;
 	}
