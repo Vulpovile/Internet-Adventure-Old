@@ -2,6 +2,7 @@ package com.androdome.wrapplet;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -20,7 +21,15 @@ import javax.swing.SwingConstants;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class AppletAcceptDialog extends JFrame {
 
@@ -45,7 +54,71 @@ public class AppletAcceptDialog extends JFrame {
 	 * @param archives 
 	 * @param name 
 	 */
-	public AppletAcceptDialog(String name, URL[] archives, String className, String codeBase) {
+	
+	static File trustedSites = new File("TrustedSites.txt");
+	static ArrayList<String> trusted = new ArrayList<String>();
+	
+	static
+	{
+		if(trustedSites.exists())
+		{
+			try
+			{
+				BufferedReader reader = new BufferedReader(new FileReader(trustedSites));
+				String line;
+				while((line = reader.readLine()) != null)
+					trusted.add(line);
+				reader.close();
+			}
+			catch (Exception e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else
+		{
+			try
+			{
+				trustedSites.createNewFile();
+			}
+			catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public boolean isSiteTrusted(String codebase)
+	{
+		return trusted.contains(codebase.toLowerCase());
+			//return true;
+	}
+	
+	public void setSiteTrusted(String codebase)
+	{
+		codebase = codebase.toLowerCase();
+		trusted.add(codebase);
+		try{
+			BufferedWriter writer = new BufferedWriter(new FileWriter(trustedSites));
+			for(int i = 0; i < trusted.size(); i++)
+			{
+				writer.write(trusted.get(i));
+				writer.newLine();
+			}
+			writer.close();
+		}
+		catch(Exception ex){}
+	}
+	String codebase;
+	public AppletAcceptDialog(String name, URL[] archives, String className, final String codeBase) {
+		codebase = codeBase;
+		if(isSiteTrusted(codeBase))
+		{
+			this.dialogResult = DIALOG_RUN;
+			return;
+		}
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setResizable(false);
 		this.setAlwaysOnTop(true);
@@ -88,22 +161,22 @@ public class AppletAcceptDialog extends JFrame {
 			ar += archives[i].toString().replace(codeBase, "");
 		}
 		JLabel lblMainClass = new JLabel("<html><b>Archives:</b> "+ar+"</html>");
-		lblMainClass.setBounds(14, 71, 267, 14);
+		lblMainClass.setBounds(14, 71, 486, 14);
 		contentPanel.add(lblMainClass);
 		
 		JLabel lblPublisherUnknown = new JLabel("<html><b>Publisher:</b> UNKNOWN</html>");
-		lblPublisherUnknown.setBounds(14, 96, 267, 14);
+		lblPublisherUnknown.setBounds(14, 96, 486, 14);
 		contentPanel.add(lblPublisherUnknown);
 		
 		JLabel lblmainClassNull = new JLabel("<html><b>Main Class:</b> "+className+"</html>");
-		lblmainClassNull.setBounds(14, 121, 267, 14);
+		lblmainClassNull.setBounds(14, 121, 486, 14);
 		contentPanel.add(lblmainClassNull);
 		
 		JLabel lblfrom = new JLabel("<html><b>From:</b> "+codeBase+"</html>");
-		lblfrom.setBounds(14, 146, 267, 14);
+		lblfrom.setBounds(14, 146, 486, 14);
 		contentPanel.add(lblfrom);
 		
-		JCheckBox chckbxDoNotAsk = new JCheckBox("Always trust content from this website");
+		final JCheckBox chckbxDoNotAsk = new JCheckBox("Always trust content from this website");
 		chckbxDoNotAsk.setBounds(10, 167, 282, 23);
 		contentPanel.add(chckbxDoNotAsk);
 		panel_1.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
@@ -129,6 +202,8 @@ public class AppletAcceptDialog extends JFrame {
 		btnRun.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dialogResult = DIALOG_RUN;
+				if(chckbxDoNotAsk.isSelected())
+					setSiteTrusted(codeBase);
 				dispose();
 			}
 		});
@@ -136,5 +211,15 @@ public class AppletAcceptDialog extends JFrame {
 		contentPanel.add(btnRun);
 		pack();
 		this.setLocationRelativeTo(null);
+	}
+	@Override()
+	public void setVisible(boolean vis)
+	{
+		if(isSiteTrusted(codebase))
+		{
+			this.dialogResult = DIALOG_RUN;
+			this.dispose();
+		}
+		else super.setVisible(vis);
 	}
 }

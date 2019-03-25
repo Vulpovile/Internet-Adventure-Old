@@ -29,28 +29,31 @@ public class Launcher extends Applet implements AppletStub {
 	private Applet applet;
 	String codebase;
 	boolean cancelled = false;
-	private BufferedImage[] loadicon = null;
-	private BufferedImage loadjava = null;
+	private static Image[] loadicon = null;
+	private static Image loadjava = null;
 	int icoindx = 0;
 
-	public Launcher() {
-		setLayout(new BorderLayout(0, 0));
+	static
+	{
 		try
 		{
-			loadicon = new BufferedImage[24];
+			loadicon = new Image[24];
 			for (int i = 0; i < 24; i++)
 			{
-				this.loadicon[i] = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/" + (i + 1) + ".png"));
-				
-			}
-			this.loadjava = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/wrapplet2.png"));
+				loadicon[i] = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/" + (i + 1) + ".png"));
 
+			}
+			loadjava = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/wrapplet2.png"));
 		}
 		catch (IOException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public Launcher() {
+		setLayout(new BorderLayout(0, 0));
 		this.validate();
 	}
 
@@ -88,22 +91,22 @@ public class Launcher extends Applet implements AppletStub {
 
 			public void showDocument(URL url) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			public void showDocument(URL url, String target) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			public void showStatus(String status) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			public void setStream(String key, InputStream stream) throws IOException {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			public InputStream getStream(String key) {
@@ -115,8 +118,6 @@ public class Launcher extends Applet implements AppletStub {
 				// TODO Auto-generated method stub
 				return null;
 			}
-
-		
 
 		};
 	}
@@ -174,16 +175,16 @@ public class Launcher extends Applet implements AppletStub {
 
 	public void paint(Graphics g) {
 		super.paint(g);
-		Graphics2D g2d = (Graphics2D)g.create();
+		Graphics2D g2d = (Graphics2D) g.create();
 		g.setColor(this.getBackground());
-		if(!cancelled)
+		if (!cancelled)
 		{
 			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			
+
 			int size1 = (int) (Math.min(this.getWidth(), this.getHeight()) * 0.8F);
-			int size2 = (int)(size1*(2.00000D/3.00000D));
-			g2d.drawImage(this.loadicon[icoindx], this.getWidth()/2-size1/2, this.getHeight()/2-size1/2, size1, size1, this);
-			g2d.drawImage(this.loadjava, this.getWidth()/2-size2/2, this.getHeight()/2-size2/2, size2, size2, this);
+			int size2 = (int) (size1 * (2.00000D / 3.00000D));
+			g2d.drawImage(this.loadicon[icoindx], this.getWidth() / 2 - size1 / 2, this.getHeight() / 2 - size1 / 2, size1, size1, this);
+			g2d.drawImage(this.loadjava, this.getWidth() / 2 - size2 / 2, this.getHeight() / 2 - size2 / 2, size2, size2, this);
 		}
 		else g.drawRect(0, 0, getWidth(), getHeight());
 	}
@@ -193,17 +194,19 @@ public class Launcher extends Applet implements AppletStub {
 			public void run() {
 				try
 				{
-					while(applet == null && cancelled == false)
+					while (applet == null && cancelled == false)
 					{
-					Thread.sleep(81L);
-					icoindx++;
-					if (icoindx > 23)
-						icoindx = 0;
-					repaint();
+						Thread.sleep(81L);
+						icoindx++;
+						if (icoindx > 23)
+							icoindx = 0;
+						repaint();
 					}
 				}
-				catch(Exception ex){}
-				
+				catch (Exception ex)
+				{
+				}
+
 			}
 		}.start();
 	}
@@ -258,12 +261,17 @@ public class Launcher extends Applet implements AppletStub {
 	}
 
 	public void setCancel() {
+		setCancel("Applet loading cancelled");
+	}
+
+	public void setCancel(String string) {
 		cancelled = true;
-		Label label = new Label("Applet loading cancelled");
+		Label label = new Label(string);
 		label.setForeground(Color.red);
 		this.add(label, BorderLayout.CENTER);
 		this.validateTree();
 		this.repaint();
 		this.validate();
+		
 	}
 }

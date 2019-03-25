@@ -9,6 +9,8 @@ import java.awt.Panel;
 import java.awt.ScrollPane;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -294,7 +296,10 @@ public class MainFrame extends JFrame {
 				}
 			}
 	
-			URL cbStarter = new URL(browser.getBaseURL(), box.getNode().getAttributes().getNamedItem("codebase").getNodeValue());
+			String cbVal = ".";
+			if(box.getNode().getAttributes().getNamedItem("codebase") != null)
+				cbVal = box.getNode().getAttributes().getNamedItem("codebase").getNodeValue();
+			URL cbStarter = new URL(browser.getBaseURL(), cbVal);
 			String cb = cbStarter.toString();
 			JPanel appletContainer = new JPanel();
 			appletContainer.setLayout(new BorderLayout());
@@ -470,7 +475,7 @@ public class MainFrame extends JFrame {
 		panel.setLayout(new BorderLayout(0, 0));
 	}
 
-	public Applet createApplet(String className, ClassLoader classLoader) {
+	public Applet createApplet(String className, ClassLoader classLoader) throws UnsupportedClassVersionError{
 		try
 		{
 			Class<?> appletClass = classLoader.loadClass(className);
@@ -501,6 +506,11 @@ public class MainFrame extends JFrame {
 				while (dialog.dialogResult == 0)
 					try
 					{
+						if(dialog.isSiteTrusted(codeBase))
+						{
+							dialog.dialogResult = AppletAcceptDialog.DIALOG_RUN;
+							dialog.dispose();
+						}
 						Thread.sleep(100L);
 					}
 					catch (InterruptedException e)
@@ -514,8 +524,17 @@ public class MainFrame extends JFrame {
 					return;
 				}
 				Thread.currentThread().setContextClassLoader(loader);
+				try{
 				Applet applet = createApplet(className, loader);
 				launcher.replace(applet);
+				}
+				catch(UnsupportedClassVersionError er)
+				{
+					String errorString = er.getMessage();
+					launcher.setCancel(errorString);
+
+					er.printStackTrace();
+				}
 			}
 		};
 		th.start();

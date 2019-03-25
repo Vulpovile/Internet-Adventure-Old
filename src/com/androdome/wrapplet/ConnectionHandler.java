@@ -110,7 +110,6 @@ public class ConnectionHandler {
 			PrintWriter pw = new PrintWriter(sw);
 			e.printStackTrace(pw);
 			String sStackTrace = sw.toString(); // stack trace as a string
-			System.out.println(sStackTrace);
 			navigateError(frame, "about:eunknownhost", "<br><br>The host <a href='"+HtmlUtils.stringToHTMLString(location)+"'>" + HtmlUtils.stringToHTMLString(location) + 
 					"</a><br> could not be connected to."
 					+ "<br>It may have been mistyped, or does not exist"
@@ -155,7 +154,6 @@ public class ConnectionHandler {
 		PrintWriter pw = new PrintWriter(sw);
 		e.printStackTrace(pw);
 		String sStackTrace = sw.toString(); // stack trace as a string
-		System.out.println(sStackTrace);
 		navigateError(frame, "about:eurlmalform", "<br><br>The address <a href='"+HtmlUtils.stringToHTMLString(location)+"'>" + HtmlUtils.stringToHTMLString(location) + 
 				"</a><br>does not match any supported protocol."
 				+ "<br>It may have been mistyped."
