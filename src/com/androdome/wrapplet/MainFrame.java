@@ -15,6 +15,7 @@ import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -201,20 +202,7 @@ public class MainFrame extends JFrame {
 		        		NamedNodeMap attr = box.getParent().getNode().getAttributes();
 		        		if(attr.getNamedItem("href") != null)
 		        		{
-		        			try
-							{
-								ConnectionHandler.navigate(MainFrame.this, new URL(browser.getBaseURL(), attr.getNamedItem("href").getNodeValue()).toString());
-							}
-							catch (MalformedURLException e)
-							{
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							catch (DOMException e)
-							{
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
+							ConnectionHandler.navigate(MainFrame.this, browser.getBaseURL(), attr.getNamedItem("href").getNodeValue());
 		        		}
 		        	}
 		        }
@@ -263,56 +251,95 @@ public class MainFrame extends JFrame {
 		}
 	}
 	
-	public void parseApplets(BrowserCanvas browser) {
-		Box box = browser.getViewport().getElementBoxByName("applet", false);
-		if (box == null)
+	
+
+	
+	public void iterateChildren(ElementBox box)
+	{
+		for(int i = box.getStartChild(); i < box.getEndChild(); i++)
+		{
+			System.out.println(box.getSubBox(i));
+			if(box.getSubBox(i) instanceof ElementBox)
+			{
+				iterateChildren((ElementBox)box.getSubBox(i));
+			}
+		}
+	}
+	
+	
+	public void iterateNodes(Node node)
+	{
+		NodeList nodes = node.getChildNodes();
+		for(int i = 0; i < nodes.getLength(); i++)
+		{
+			System.out.println(nodes.item(i).getNodeName());
+				iterateNodes(nodes.item(i));
+		}
+	}
+	
+	
+	public void parseApplets(BrowserCanvas browser) throws MalformedURLException, DOMException {
+		ArrayList<ElementBox> boxes = browser.getViewport().getElementsBoxByName("applet", false);
+		if (boxes == null)
 			return;
-		NodeList nodes = box.getNode().getChildNodes();
-		HashMap<String, String> params = new HashMap<String, String>();
-		for (int i = 0; i < nodes.getLength(); i++)
-		{
-			if (nodes.item(i).getNodeName().equalsIgnoreCase("param"))
+			for(int x = 0; x < boxes.size(); x++){
+			Box box = boxes.get(x);
+			NodeList nodes = box.getNode().getChildNodes();
+			HashMap<String, String> params = new HashMap<String, String>();
+			for (int i = 0; i < nodes.getLength(); i++)
 			{
-				params.put(nodes.item(i).getAttributes().getNamedItem("name").getNodeValue(), nodes.item(i).getAttributes().getNamedItem("value").getNodeValue());
+				if (nodes.item(i).getNodeName().equalsIgnoreCase("param"))
+				{
+					params.put(nodes.item(i).getAttributes().getNamedItem("name").getNodeValue(), nodes.item(i).getAttributes().getNamedItem("value").getNodeValue());
+				}
 			}
+	
+			URL cbStarter = new URL(browser.getBaseURL(), box.getNode().getAttributes().getNamedItem("codebase").getNodeValue());
+			String cb = cbStarter.toString();
+			JPanel appletContainer = new JPanel();
+			appletContainer.setLayout(new BorderLayout());
+			
+			//int width = Integer.parseInt(box.getNode().getAttributes().getNamedItem("width").getNodeValue());
+	
+			//int height = Integer.parseInt(box.getNode().getAttributes().getNamedItem("height").getNodeValue());
+			appletContainer.setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
+	
+			appletContainer.setSize(box.getMinimalWidth(), box.getHeight());
+			URL[] arUrl;
+			if(box.getNode().getAttributes().getNamedItem("archive") != null)
+			{
+				String[] ar = box.getNode().getAttributes().getNamedItem("archive").getNodeValue().replace(" ", "").split(",");
+				arUrl = new URL[ar.length];
+				for (int i = 0; i < ar.length; i++)
+				{
+					try
+					{
+						arUrl[i] = new URL(cb + ar[i]);
+					}
+					catch (MalformedURLException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			else 
+				arUrl = new URL[]{cbStarter};
+			// System.out.println(cb);
+			Node nameNode = box.getNode().getAttributes().getNamedItem("name");
+			String name = "Unnamed Applet";
+			if (nameNode != null)
+				name = nameNode.getNodeValue();
+			String code = box.getNode().getAttributes().getNamedItem("code").getNodeValue();
+			if(code.endsWith(".class"))
+				code = code.substring(0, code.length()-".class".length());
+			System.out.println(code);
+			Applet applet = getApplet(name, arUrl, code,  params, cb);
+			appletContainer.add(applet);
+			this.componentBinding.add(appletContainer);
+			this.boxBinding.add(box.getNode());
+			browser.add(appletContainer);
 		}
-
-		String cbStarter = browser.getBaseURL().toString().substring(0, browser.getBaseURL().toString().lastIndexOf('/') + 1);
-		String cb = cbStarter;
-		JPanel appletContainer = new JPanel();
-		appletContainer.setLayout(new BorderLayout());
-		
-		//int width = Integer.parseInt(box.getNode().getAttributes().getNamedItem("width").getNodeValue());
-
-		//int height = Integer.parseInt(box.getNode().getAttributes().getNamedItem("height").getNodeValue());
-		appletContainer.setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
-
-		appletContainer.setSize(box.getMinimalWidth(), box.getHeight());
-		
-		String[] ar = box.getNode().getAttributes().getNamedItem("archive").getNodeValue().replace(" ", "").split(",");
-		URL[] arUrl = new URL[ar.length];
-		for (int i = 0; i < ar.length; i++)
-		{
-			try
-			{
-				arUrl[i] = new URL(cb + ar[i]);
-			}
-			catch (MalformedURLException e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		// System.out.println(cb);
-		Node nameNode = box.getNode().getAttributes().getNamedItem("name");
-		String name = "Unnamed Applet";
-		if (nameNode != null)
-			name = nameNode.getNodeValue();
-		Applet applet = getApplet(name, arUrl, box.getNode().getAttributes().getNamedItem("code").getNodeValue(), params, cb);
-		appletContainer.add(applet);
-		this.componentBinding.add(appletContainer);
-		this.boxBinding.add(box.getNode());
-		browser.add(appletContainer);
 		browser.redrawBoxes();
 		browser.revalidate();
 	}

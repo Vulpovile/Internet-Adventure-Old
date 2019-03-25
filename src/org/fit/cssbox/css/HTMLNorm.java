@@ -54,6 +54,7 @@ public class HTMLNorm
             //Analyze HTML attributes
             String attrs = "";
             //background
+            
             if (el.getTagName().equals("table") ||
                 el.getTagName().equals("tr") ||
                 el.getTagName().equals("th") ||
@@ -61,7 +62,13 @@ public class HTMLNorm
                 el.getTagName().equals("body"))
             {
                 if (el.getAttributes().getNamedItem("bgcolor") != null)
+                {
                     attrs = attrs + "background-color: " + el.getAttribute("bgcolor") + ";";
+                }
+                if (el.getAttributes().getNamedItem("text") != null)
+                {
+                    attrs = attrs + "color: " + el.getAttribute("text") + ";";
+                }
             }
             //setting table and cell borders
             if (el.getTagName().equals("table"))
@@ -195,6 +202,7 @@ public class HTMLNorm
             	el.getTagName().equals("iframe") ||
             	el.getTagName().equals("input"))
             {
+            	
             	if (el.getAttributes().getNamedItem("align") != null)
             	{
             		String align = el.getAttribute("align");
@@ -202,6 +210,17 @@ public class HTMLNorm
             			attrs = attrs + "float:left;";
             		else if (align.equals("right"))
             			attrs = attrs + "float:right;";
+            	}
+            	if (el.getAttributes().getNamedItem("width") != null)
+            	{
+            		System.out.println("Found width!");
+            		String width = el.getAttribute("width");
+            			attrs = attrs + "width:"+width+"px;";
+            	}
+            	if (el.getAttributes().getNamedItem("height") != null)
+            	{
+            		String height = el.getAttribute("height");
+            			attrs = attrs + "height:"+height+"px;";
             	}
             }
             //table alignment

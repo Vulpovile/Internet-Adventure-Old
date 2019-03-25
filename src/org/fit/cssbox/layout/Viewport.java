@@ -19,6 +19,7 @@
 package org.fit.cssbox.layout;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import org.w3c.dom.Element;
@@ -112,6 +113,38 @@ public class Viewport extends BlockBox
             return recursiveFindElementBoxByName(rootBox, name, case_sensitive);
     }
     
+    public ArrayList<ElementBox> getElementsBoxByName(String name, boolean case_sensitive)
+    {
+    	ArrayList<ElementBox> boxes = new ArrayList<ElementBox>();
+        if (rootBox == null)
+            return null;
+        else
+        	recursiveFindElementsBoxByName(rootBox, name, case_sensitive, boxes);
+        return boxes;
+    }
+    
+	private void recursiveFindElementsBoxByName(ElementBox ebox, String name, boolean case_sensitive, ArrayList<ElementBox> boxes) {
+		boolean eq;
+        if (case_sensitive)
+            eq = ebox.getElement().getTagName().equals(name);
+        else
+            eq = ebox.getElement().getTagName().equalsIgnoreCase(name);
+        
+        if (eq)
+            boxes.add(ebox);
+        else
+        {
+            ElementBox ret = null;
+            for (int i = 0; i < ebox.getSubBoxNumber() && ret == null; i++)
+            {
+                Box child = ebox.getSubBox(i);
+                if (child instanceof ElementBox)
+                    recursiveFindElementsBoxByName((ElementBox) child, name, case_sensitive, boxes);
+            }
+        }
+        
+	}
+
 	@Override
     public void addSubBox(Box box)
     {

@@ -75,7 +75,8 @@ public class ConnectionHandler {
 		try
 		{
 			url = make_url(location);
-
+			if(url == null)
+				throw new MalformedURLException();
 		
 			frame.clearComp();
 			URLConnection con = url.openConnection();
@@ -96,22 +97,11 @@ public class ConnectionHandler {
 			// scrollPane.removeAll();
 			frame.browser.navigate(da.getRoot(), da, new java.awt.Dimension(frame.scrollPane.getWidth(), frame.scrollPane.getHeight()), url);
 			frame.parseApplets(frame.browser);
+			//frame.parseComponents(frame.browser);
 		}
 		catch (MalformedURLException e)
 		{
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
-			String sStackTrace = sw.toString(); // stack trace as a string
-			System.out.println(sStackTrace);
-			navigateError(frame, "about:eurlmalform", "<br><br>The address <a href='"+HtmlUtils.stringToHTMLString(location)+"'>" + HtmlUtils.stringToHTMLString(location) + 
-					"</a><br>does not match any supported protocol."
-					+ "<br>It may have been mistyped."
-					+ "<br>Please ensure that the protocol is supported "
-					+ "<br>and that everything is spelled correctly.<br />&nbsp;<br />"
-					+ "Java stack trace:"
-					+"<br />&nbsp;<br />&nbsp;<br />"
-					+HtmlUtils.stringToHTMLString(sStackTrace));
+			handleExcec(frame, location, e);
 		}
 		// scrollPane.setViewportView(browser);
 		catch (UnknownHostException e)
@@ -143,11 +133,38 @@ public class ConnectionHandler {
 	}
 
 	
-	
 	public ConnectionHandler() {
 		// TODO Auto-generated constructor stub
 	}
+
+	public static void navigate(MainFrame frame, URL baseURL, String nodeValue) {
+		try
+		{
+			URL url = new URL(baseURL, nodeValue);
+			navigate(frame, url.toString());
+		}
+		catch (MalformedURLException e)
+		{
+			handleExcec(frame, nodeValue, e);
+		}
+	}
 	
+	private static void handleExcec(MainFrame frame, String location, MalformedURLException e)
+	{
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		String sStackTrace = sw.toString(); // stack trace as a string
+		System.out.println(sStackTrace);
+		navigateError(frame, "about:eurlmalform", "<br><br>The address <a href='"+HtmlUtils.stringToHTMLString(location)+"'>" + HtmlUtils.stringToHTMLString(location) + 
+				"</a><br>does not match any supported protocol."
+				+ "<br>It may have been mistyped."
+				+ "<br>Please ensure that the protocol is supported "
+				+ "<br>and that everything is spelled correctly.<br />&nbsp;<br />"
+				+ "Java stack trace:"
+				+"<br />&nbsp;<br />&nbsp;<br />"
+				+HtmlUtils.stringToHTMLString(sStackTrace));
+	}
 	
 
 }
