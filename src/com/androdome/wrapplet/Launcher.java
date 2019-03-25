@@ -29,7 +29,7 @@ public class Launcher extends Applet implements AppletStub {
 	private Applet applet;
 	String codebase;
 	boolean cancelled = false;
-	private static Image[] loadicon = null;
+	private static Image loadicon = null;
 	private static Image loadjava = null;
 	int icoindx = 0;
 
@@ -37,12 +37,12 @@ public class Launcher extends Applet implements AppletStub {
 	{
 		try
 		{
-			loadicon = new Image[24];
-			for (int i = 0; i < 24; i++)
-			{
-				loadicon[i] = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/" + (i + 1) + ".png"));
+			//loadicon = new Image[24];
+			//for (int i = 0; i < 24; i++)
+			//{
+				loadicon = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/circ.png"));
 
-			}
+			//}
 			loadjava = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/wrapplet2.png"));
 		}
 		catch (IOException e)
@@ -173,20 +173,46 @@ public class Launcher extends Applet implements AppletStub {
 		paint(g);
 	}
 
+	Image image;
 	public void paint(Graphics g) {
-		super.paint(g);
-		Graphics2D g2d = (Graphics2D) g.create();
-		g.setColor(this.getBackground());
+		int deg = 3;
+		Graphics2D g2d;
+		if (image == null) {
+	        image = createImage(this.getWidth(), this.getHeight());
+	        
+	    }
+		g2d = (Graphics2D) image.getGraphics();
+		g2d.setColor(this.getBackground());
 		if (!cancelled)
 		{
 			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 			int size1 = (int) (Math.min(this.getWidth(), this.getHeight()) * 0.8F);
 			int size2 = (int) (size1 * (2.00000D / 3.00000D));
-			g2d.drawImage(this.loadicon[icoindx], this.getWidth() / 2 - size1 / 2, this.getHeight() / 2 - size1 / 2, size1, size1, this);
-			g2d.drawImage(this.loadjava, this.getWidth() / 2 - size2 / 2, this.getHeight() / 2 - size2 / 2, size2, size2, this);
+			g2d.translate(this.getWidth() / 2, this.getHeight() / 2);
+			g2d.rotate(Math.toRadians(deg*this.icoindx));
+			g2d.drawImage(Launcher.loadicon, -size1 / 2, -size1 / 2, size1, size1, this);
+			g2d.rotate(Math.toRadians(-deg*this.icoindx));
+			drawLines(g2d, 16, size1);
+			g2d.drawImage(Launcher.loadjava, -size2 / 2, -size2 / 2, size2, size2, this);
+			g.drawImage(image, 0,0,this.getWidth(), this.getHeight(), this);
 		}
 		else g.drawRect(0, 0, getWidth(), getHeight());
+	}
+	
+	public void drawLines(Graphics2D g2d, int count, int size1)
+	{
+		double thicc = size1*0.06;
+		double inc = (double)360/(double)count;
+		for(int i = 0; i < count; i++)
+		{
+			
+			g2d.clearRect((int)-thicc/2,-this.getHeight()/2,(int)thicc,this.getHeight());
+			g2d.rotate(Math.toRadians(inc));
+		}
+		thicc = size1*0.08;
+		g2d.fillOval((int)(-size1/2+thicc),(int)(-size1/2+thicc), (int) (size1-thicc*2),(int)(size1-thicc*2));
+		//g2d.rotate(Math.toRadians(inc));
 	}
 
 	public void startThread() {
@@ -196,9 +222,9 @@ public class Launcher extends Applet implements AppletStub {
 				{
 					while (applet == null && cancelled == false)
 					{
-						Thread.sleep(81L);
+						Thread.sleep(30L);
 						icoindx++;
-						if (icoindx > 23)
+						if (icoindx > 115)
 							icoindx = 0;
 						repaint();
 					}
