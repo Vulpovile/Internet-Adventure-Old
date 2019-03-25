@@ -180,8 +180,8 @@ public class Launcher extends Applet implements AppletStub {
 		{
 			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			
-			int size1 = 300;
-			int size2 = 200;
+			int size1 = (int) (Math.min(this.getWidth(), this.getHeight()) * 0.8F);
+			int size2 = (int)(size1*(2.00000D/3.00000D));
 			g2d.drawImage(this.loadicon[icoindx], this.getWidth()/2-size1/2, this.getHeight()/2-size1/2, size1, size1, this);
 			g2d.drawImage(this.loadjava, this.getWidth()/2-size2/2, this.getHeight()/2-size2/2, size2, size2, this);
 		}
