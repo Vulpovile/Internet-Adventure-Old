@@ -3,11 +3,15 @@ package com.androdome.iadventure;
 import java.applet.Applet;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Panel;
 import java.awt.ScrollPane;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -25,6 +29,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
 import javax.swing.JToolBar;
 import javax.swing.JButton;
@@ -101,7 +106,6 @@ public class MainFrame extends JFrame{
 		}
 		catch (Exception e1)
 		{
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		final MainFrame frame = new MainFrame();
@@ -148,7 +152,7 @@ public class MainFrame extends JFrame{
 		try
 		{
 			URL url = new URL("about:welcome");
-
+			this.navBar.setText(url.toString());
 			URLConnection con = url.openConnection();
 			InputStream is = con.getInputStream();
 
@@ -203,6 +207,37 @@ public class MainFrame extends JFrame{
 				}
 			});
 
+			browser.addMouseMotionListener(
+					new MouseMotionListener(){
+
+						@Override
+						public void mouseDragged(MouseEvent arg0) {
+							
+						}
+
+						@Override
+						public void mouseMoved(MouseEvent arg0) {
+							DefaultMutableTreeNode node = HtmlUtils.locateBox(createBoxTree(browser.getViewport()), arg0.getX(), arg0.getY());
+							if (node != null)
+							{
+								Box box = (Box) node.getUserObject();
+								if (box.getParent() != null && box.getParent().getNode().getNodeName().equalsIgnoreCase("a"))
+								{
+									NamedNodeMap attr = box.getParent().getNode().getAttributes();
+									if (attr.getNamedItem("href") != null)
+									{
+										browser.setCursor(new Cursor(Cursor.HAND_CURSOR));
+							        } 
+								}
+								else {
+						            browser.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+								}
+							}
+						}
+							
+				
+			});
+			
 			browser.addMouseListener(new MouseListener() {
 
 				@Override
@@ -225,44 +260,47 @@ public class MainFrame extends JFrame{
 
 				@Override
 				public void mouseEntered(MouseEvent arg0) {
-					// TODO Auto-generated method stub
 
 				}
 
 				@Override
 				public void mouseExited(MouseEvent arg0) {
-					// TODO Auto-generated method stub
 
 				}
 
 				@Override
 				public void mousePressed(MouseEvent arg0) {
-					// TODO Auto-generated method stub
 
 				}
 
 				@Override
 				public void mouseReleased(MouseEvent arg0) {
-					// TODO Auto-generated method stub
 
 				}
 
 			});
 		}
-		catch (MalformedURLException e1)
+		catch (Exception e1)
 		{
-			// TODO Auto-generated catch block
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e1.printStackTrace(pw);
+			String sStackTrace = sw.toString();
+			pw.close();
+			JOptionPane.showMessageDialog(null, "Internet Adventure has crashed!\n\nCrash information:\n\n"+sStackTrace+"\n\nThis will also be in crashinfo.txt", "Crash", JOptionPane.ERROR_MESSAGE);
 			e1.printStackTrace();
-		}
-		catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		catch (SAXException e1)
-		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			try
+			{
+				PrintWriter fw = new PrintWriter(new FileWriter("crashinfo.txt"));
+				e1.printStackTrace(fw);
+				fw.close();
+				System.exit(-1);
+			}
+			catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 

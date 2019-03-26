@@ -84,6 +84,8 @@ public class ConnectionHandler
 			throws IOException, SSLHandshakeException {
 		
 		URLConnection con = url[0].openConnection();
+		con.setRequestProperty("User-Agent", "MSIE 4");
+	    
 		InputStream in = null;
 		try{
 		in = new BufferedInputStream(con.getInputStream());
