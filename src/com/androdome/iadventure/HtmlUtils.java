@@ -1,4 +1,4 @@
-package com.androdome.wrapplet;
+package com.androdome.iadventure;
 
 import java.awt.Rectangle;
 

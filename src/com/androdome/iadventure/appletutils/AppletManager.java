@@ -1,4 +1,4 @@
-package com.androdome.wrapplet;
+package com.androdome.iadventure.appletutils;
 
 import java.applet.Applet;
 import java.awt.BorderLayout;
@@ -20,6 +20,9 @@ import org.fit.cssbox.layout.BrowserCanvas;
 import org.fit.cssbox.layout.ElementBox;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.androdome.iadventure.HtmlUtils;
+import com.androdome.iadventure.MainFrame;
 
 public class AppletManager {
 
@@ -77,16 +80,17 @@ public class AppletManager {
 		}
 	}
 	
-	public static Applet getApplet(final String name, final URL[] archives, final String className, HashMap<String, String> params, final String codeBase) {
+	public static Applet getApplet(final String name, final URL[] archives, final String className, HashMap<String, String> params, final String codeBase, final ExtendedAppletContext context) {
 
 		System.out.println(codeBase);
-		final Launcher launcher = new Launcher();
-		launcher.setMessage("Getting codebase");
-		launcher.codebase = codeBase;
-		launcher.setMessage("Getting parameters");
-		launcher.setParams(params);
-		launcher.setMessage("Waiting for permission");
-		launcher.startThread();
+		final Wrapplet wrapplet = new Wrapplet();
+		wrapplet.setAppletContext(context);
+		wrapplet.setMessage("Getting codebase");
+		wrapplet.codebase = codeBase;
+		wrapplet.setMessage("Getting parameters");
+		wrapplet.setParams(params);
+		wrapplet.setMessage("Waiting for permission");
+		wrapplet.startThread();
 		Thread th = new Thread() {
 			public void run() {
 				
@@ -104,37 +108,37 @@ public class AppletManager {
 					}
 					catch (InterruptedException e)
 					{
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				if (dialog.dialogResult == AppletAcceptDialog.DIALOG_CANCEL)
 				{
-					launcher.setCancel();
+					wrapplet.setCancel();
 					return;
 				}
-				launcher.setMessage("Updating classloader");
-				launcher.setProgress(20);
+				wrapplet.setMessage("Updating classloader");
+				wrapplet.setProgress(20);
 				URLClassLoader loader = new URLClassLoader(archives, null);
 
-				launcher.setProgress(40);
+				wrapplet.setProgress(40);
 
-				launcher.setMessage("Swapping context");
+				wrapplet.setMessage("Swapping context");
 				Thread.currentThread().setContextClassLoader(loader);
-				launcher.setProgress(50);
+				wrapplet.setProgress(50);
 				try
 				{
 
-					launcher.setMessage("Fetching applet");
-					launcher.setProgress(60);
+					wrapplet.setMessage("Fetching applet");
+					wrapplet.setProgress(60);
 					Applet applet = createApplet(className, loader);
-					launcher.setMessage("Swapping applet");
-					launcher.setProgress(70);
-					launcher.replace(applet);
+					wrapplet.setMessage("Swapping applet");
+					wrapplet.setProgress(70);
+					context.putApplet(name, applet);
+					wrapplet.setApplet(applet);
 				}
 				catch (UnsupportedClassVersionError er)
 				{
 					String errorString = er.getMessage();
-					launcher.setCancel(errorString);
+					wrapplet.setCancel(errorString);
 
 					er.printStackTrace();
 				}
@@ -142,11 +146,13 @@ public class AppletManager {
 		};
 		th.start();
 
-		return launcher;
+		return wrapplet;
 	}
 	
 	
+	
 	public static void parseApplets(BrowserCanvas browser, MainFrame frame){
+		frame.appletContext = new ExtendedAppletContext();
 		ArrayList<ElementBox> boxes = browser.getViewport().getElementsBoxByName("applet", false);
 		if (boxes == null)
 			return;
@@ -193,7 +199,6 @@ public class AppletManager {
 					}
 					catch (MalformedURLException e)
 					{
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -220,10 +225,9 @@ public class AppletManager {
 				}
 				name = pName;
 			}
-			Applet applet = getApplet(name, arUrl, code, params, cb);
+			Applet applet = getApplet(name, arUrl, code, params, cb, frame.appletContext);
 			appletContainer.add(applet);
-			frame.componentBinding.add(appletContainer);
-			frame.boxBinding.add(box.getNode());
+			frame.addComponentNodeBinding(appletContainer, box.getNode());
 			browser.add(appletContainer);
 			}
 			catch (Exception e1)
@@ -241,8 +245,7 @@ public class AppletManager {
 						HtmlUtils.stringToHTMLString(sStackTrace)+ "</html>");
 				errorMsg.setHorizontalAlignment(JLabel.CENTER);
 				errorBox.add(errorMsg);
-				frame.componentBinding.add(errorBox);
-				frame.boxBinding.add(box.getNode());
+				frame.addComponentNodeBinding(errorBox, box.getNode());
 				browser.add(errorBox);
 				e1.printStackTrace();
 			}

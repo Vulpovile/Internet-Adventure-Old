@@ -1,4 +1,4 @@
-package com.androdome.wrapplet;
+package com.androdome.iadventure;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -18,10 +18,13 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLHandshakeException;
+
 import org.fit.cssbox.css.CSSNorm;
 import org.fit.cssbox.css.DOMAnalyzer;
 import org.fit.cssbox.demo.DOMSource;
 import org.w3c.dom.Document;
+
+import com.androdome.iadventure.appletutils.AppletManager;
 
 public class ConnectionHandler
 {

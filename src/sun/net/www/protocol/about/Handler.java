@@ -5,7 +5,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
-import com.androdome.wrapplet.PropertyManager;
+import com.androdome.iadventure.PropertyManager;
 
 public class Handler extends URLStreamHandler {
     /** The classloader to find resources from. */

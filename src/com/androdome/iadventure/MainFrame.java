@@ -1,4 +1,4 @@
-package com.androdome.wrapplet;
+package com.androdome.iadventure;
 
 import java.applet.Applet;
 import java.awt.BorderLayout;
@@ -6,18 +6,12 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Panel;
 import java.awt.ScrollPane;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -42,12 +36,13 @@ import org.fit.cssbox.demo.DOMSource;
 import org.fit.cssbox.layout.Box;
 import org.fit.cssbox.layout.BrowserCanvas;
 import org.fit.cssbox.layout.ElementBox;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.androdome.iadventure.appletutils.ExtendedAppletContext;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -66,7 +61,14 @@ public class MainFrame extends JFrame{
 
 	JProgressBar progressBar = new JProgressBar();
 	ArrayList<Component> componentBinding = new ArrayList<Component>();
-	ArrayList<Node> boxBinding = new ArrayList<Node>();
+	ArrayList<Node> nodeBinding = new ArrayList<Node>();
+	public ExtendedAppletContext appletContext = null;
+	
+	public synchronized void addComponentNodeBinding(Component comp, Node node)
+	{
+		componentBinding.add(comp);
+		nodeBinding.add(node);
+	}
 
 	public static double JAVA_VERSION = getVersion();
 	ConnectionHandler conHandler = new ConnectionHandler();
@@ -120,8 +122,11 @@ public class MainFrame extends JFrame{
 
 			}
 		}
+		if(appletContext != null)
+			appletContext.dispose();
+		appletContext = null;
 		this.componentBinding.clear();
-		this.boxBinding.clear();
+		this.nodeBinding.clear();
 		browser.removeAll();
 		System.gc();
 	}
@@ -185,7 +190,7 @@ public class MainFrame extends JFrame{
 							browser.createLayout(scrollPane.getSize());
 							for (int i = 0; i < componentBinding.size(); i++)
 							{
-								Box box = browser.getViewport().getElementBoxByNode(boxBinding.get(i));
+								Box box = browser.getViewport().getElementBoxByNode(nodeBinding.get(i));
 								componentBinding.get(i).setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
 								componentBinding.get(i).setSize(box.getMinimalWidth(), box.getHeight());
 								componentBinding.get(i).validate();

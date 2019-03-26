@@ -1,4 +1,4 @@
-package com.androdome.wrapplet;
+package com.androdome.iadventure.appletutils;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

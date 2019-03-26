@@ -1,29 +1,24 @@
-package com.androdome.wrapplet;
+package com.androdome.iadventure.appletutils;
 
 import java.applet.Applet;
 import java.applet.AppletContext;
 import java.applet.AppletStub;
-import java.applet.AudioClip;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Label;
 import java.awt.RenderingHints;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-public class Launcher extends Applet implements AppletStub {
+public class Wrapplet extends Applet implements AppletStub {
 	private static final long serialVersionUID = 1L;
 	private Map<String, String> customParameters = new HashMap<String, String>();
 	private Applet applet;
@@ -32,6 +27,7 @@ public class Launcher extends Applet implements AppletStub {
 	private static Image loadicon = null;
 	private static Image loadjava = null;
 	int icoindx = 0;
+	private AppletContext appletContext = null;
 	
 	
 
@@ -58,10 +54,10 @@ public class Launcher extends Applet implements AppletStub {
 			//loadicon = new Image[24];
 			//for (int i = 0; i < 24; i++)
 			//{
-				loadicon = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/circ.png"));
+				loadicon = ImageIO.read(Wrapplet.class.getResourceAsStream("/appletloader/loading/circ.png"));
 
 			//}
-			loadjava = ImageIO.read(Launcher.class.getResourceAsStream("/appletloader/loading/wrapplet2.png"));
+			loadjava = ImageIO.read(Wrapplet.class.getResourceAsStream("/appletloader/loading/wrapplet2.png"));
 		}
 		catch (IOException e)
 		{
@@ -70,75 +66,19 @@ public class Launcher extends Applet implements AppletStub {
 		}
 	}
 
-	public Launcher() {
+	public Wrapplet() {
 		setBackground(Color.WHITE);
 		setLayout(new BorderLayout(0, 0));
 		this.validate();
 	}
 
 	public AppletContext getAppletContext() {
-		return new AppletContext() {
-
-			public AudioClip getAudioClip(URL url) {
-				return null;
-			}
-
-			public Image getImage(URL url) {
-				// TODO Auto-generated method stub
-				try
-				{
-					System.out.println(url);
-					return ImageIO.read(url);
-				}
-				catch (IOException e)
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					return null;
-				}
-			}
-
-			public Applet getApplet(String name) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			public Enumeration<Applet> getApplets() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			public void showDocument(URL url) {
-				// TODO Auto-generated method stub
-
-			}
-
-			public void showDocument(URL url, String target) {
-				// TODO Auto-generated method stub
-
-			}
-
-			public void showStatus(String status) {
-				// TODO Auto-generated method stub
-
-			}
-
-			public void setStream(String key, InputStream stream) throws IOException {
-				// TODO Auto-generated method stub
-
-			}
-
-			public InputStream getStream(String key) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-			public Iterator<String> getStreamKeys() {
-				// TODO Auto-generated method stub
-				return null;
-			}
-
-		};
+		return appletContext;
+	}
+	
+	public void setAppletContext(AppletContext context)
+	{
+		this.appletContext = context;
 	}
 
 	public void init() {
@@ -174,7 +114,7 @@ public class Launcher extends Applet implements AppletStub {
 		}
 	}
 
-	public void replace(Applet applet) {
+	public void setApplet(Applet applet) {
 		setMessage("Initializing applet");
 		setProgress(80);
 		this.applet = applet;
@@ -236,10 +176,10 @@ public class Launcher extends Applet implements AppletStub {
 			g2d.fillRect(-size1/2, size1/2+42, (int) ((size1/100.0)*prog), 10);
 			g2d.setColor(this.getBackground());
 			g2d.rotate(Math.toRadians(this.icoindx));
-			g2d.drawImage(Launcher.loadicon, -size1 / 2, -size1 / 2, size1, size1, this);
+			g2d.drawImage(Wrapplet.loadicon, -size1 / 2, -size1 / 2, size1, size1, this);
 			g2d.rotate(Math.toRadians(-this.icoindx));
 			drawLines(g2d, 16, size1);
-			g2d.drawImage(Launcher.loadjava, -size2 / 2, -size2 / 2, size2, size2, this);
+			g2d.drawImage(Wrapplet.loadjava, -size2 / 2, -size2 / 2, size2, size2, this);
 			
 			g.drawImage(image, 0,0,this.getWidth(), this.getHeight(), this);
 		}
