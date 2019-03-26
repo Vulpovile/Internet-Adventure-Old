@@ -222,6 +222,20 @@ public class HTMLNorm
             			attrs = attrs + "height:"+height+"px;";
             	}
             }
+            //div align
+            if(el.getTagName().equals("div"))
+            {
+            	if(el.getAttributes().getNamedItem("align") != null)
+            	{
+            		String align = el.getAttribute("align");
+            		if(align.equalsIgnoreCase("center"))
+            		{
+            			System.out.println("Found center item");
+            			attrs = attrs + "margin-left:auto; margin-right:auto;text-align:center;";
+            		}
+            	}
+            }
+            
             //table alignment
             if (el.getTagName().equals("col") ||
                 el.getTagName().equals("colgroup") ||

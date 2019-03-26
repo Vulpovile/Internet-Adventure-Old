@@ -6,6 +6,7 @@ import java.applet.AppletStub;
 import java.applet.AudioClip;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -37,6 +38,18 @@ public class Launcher extends Applet implements AppletStub {
 	public void setParams(Map<String, String> param)
 	{
 		this.customParameters = param;
+		if(customParameters.get("boxbgcolor") != null)
+		{
+			try{
+				this.setBackground(Color.decode(customParameters.get("boxbgcolor")));
+			}catch(Throwable ex){}
+		}
+		if(customParameters.get("boxfgcolor") != null)
+		{
+			try{
+				this.setForeground(Color.decode(customParameters.get("boxfgcolor")));
+			}catch(Throwable ex){}
+		}
 	}
 	static
 	{
@@ -168,6 +181,8 @@ public class Launcher extends Applet implements AppletStub {
 
 		setMessage("Setting stub");
 		setProgress(90);
+		if(applet == null)
+			this.setCancel("Applet returned null");
 		applet.setStub(this);
 		applet.setSize(getWidth(), getHeight());
 
@@ -324,8 +339,9 @@ public class Launcher extends Applet implements AppletStub {
 	public void setCancel(String string) {
 		cancelled = true;
 		Label label = new Label(string);
+		label.setAlignment(Label.CENTER);
 		label.setForeground(Color.red);
-		this.add(label, BorderLayout.CENTER);
+		this.add(label);
 		this.repaint();
 		this.validate();
 		

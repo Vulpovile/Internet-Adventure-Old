@@ -45,6 +45,7 @@ public class CSSNorm
         "h5, h6, noframes,"+
         "ol, p, ul, center,"+
         "dir, hr, menu, pre   { display: block }"+
+        "center			 { margin-left:auto; margin-right:auto;}"+
         "li              { display: list-item }"+
         "head            { display: none }"+
         "table 		     { display: table }"+

@@ -63,7 +63,6 @@ public class ConnectionHandler
 			frame.browser.navigate(da.getRoot(), da, new java.awt.Dimension(
 					frame.scrollPane.getWidth(), frame.scrollPane.getHeight()),
 					url);
-			frame.parseApplets(frame.browser);
 			frame.browser.redrawBoxes();
 			frame.browser.repaint();
 			frame.browser.revalidate();
@@ -74,21 +73,32 @@ public class ConnectionHandler
 		catch (Exception ex)
 		{
 			ex.printStackTrace();
-			navigate(frame, "about:econfailed");
+			//navigate(frame, "about:econfailed");
 		}
 	}
 
-	public static InputStream getSiteData(MainFrame frame, URL url)
+	public static InputStream getSiteData(MainFrame frame, URL[] url)
 			throws IOException, SSLHandshakeException {
 		
-		HttpURLConnection con = (HttpURLConnection) url.openConnection();
-		InputStream in = new BufferedInputStream(con.getInputStream());
+		URLConnection con = url[0].openConnection();
+		InputStream in = null;
+		try{
+		in = new BufferedInputStream(con.getInputStream());
+		}catch(IOException ex)
+		{
+			if(con instanceof HttpURLConnection)
+				in = new BufferedInputStream(((HttpURLConnection) con).getErrorStream());
+			else throw ex;
+		}
+		if(con instanceof HttpURLConnection)
+			url[0] = con.getURL();
+		System.out.println(con.getURL());
 		frame.progressBar.setMaximum(Math.max(con.getContentLength(), in.available()));
 
 		ByteArrayOutputStream bytearr = new ByteArrayOutputStream();
 		byte[] buffer = new byte[1024];
 		frame.progressBar.setValue(0);
-		frame.lblProg.setText("Transferring from " + url.toString() + "...");
+		frame.lblProg.setText("Transferring from " + url[0].toString() + "...");
 		while ((in.read(buffer)) > 0)
 		{
 			System.out.print("no");
@@ -135,7 +145,10 @@ public class ConnectionHandler
 						frame.lblProg.setText("Cancelled.");
 						return;
 					}
-					InputStream is = getSiteData(frame, url);
+					URL[] urlar = new URL[]{url};
+					InputStream is = getSiteData(frame, urlar);
+					url = urlar[0];
+					frame.navBar.setText(url.toString());
 					frame.lblProg.setText("Parsing...");
 
 					// Parse the input document (replace this with your own
@@ -180,7 +193,8 @@ public class ConnectionHandler
 						frame.lblProg.setText("Cancelled.");
 						return;
 					}
-					frame.parseApplets(frame.browser);
+					
+					AppletManager.parseApplets(frame.browser, frame);
 					// frame.parseComponents(frame.browser);
 					frame.browser.redrawBoxes();
 					frame.browser.repaint();
@@ -280,7 +294,7 @@ public class ConnectionHandler
 														// string
 					navigateError(
 							frame,
-							"about:eunknwon",
+							"about:eunknown",
 							"<br><br>There was an unknown error when trying to connect to <br>the host <a href='"
 									+ HtmlUtils.stringToHTMLString(location)
 									+ "'>"
