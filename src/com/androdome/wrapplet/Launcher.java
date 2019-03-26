@@ -11,7 +11,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Label;
 import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -163,14 +162,20 @@ public class Launcher extends Applet implements AppletStub {
 	}
 
 	public void replace(Applet applet) {
+		setMessage("Initializing applet");
+		setProgress(80);
 		this.applet = applet;
 
+		setMessage("Setting stub");
+		setProgress(90);
 		applet.setStub(this);
 		applet.setSize(getWidth(), getHeight());
 
 		setLayout(new BorderLayout());
 		add(applet, "Center");
 
+		setMessage("Starting");
+		setProgress(100);
 		applet.init();
 		applet.start();
 		validate();
@@ -179,10 +184,22 @@ public class Launcher extends Applet implements AppletStub {
 	public void update(Graphics g) {
 		paint(g);
 	}
-
+	private int prog = 0;
+	String message = "Waiting for permission";
+	
+	public void setProgress(int prog)
+	{
+		this.prog = prog;
+		this.repaint();
+	}
+	public void setMessage(String message)
+	{
+		this.message = message;
+		this.repaint();
+	}
+	
 	Image image;
 	public void paint(Graphics g) {
-		int deg = 3;
 		Graphics2D g2d;
 		if (image == null) {
 	        image = createImage(this.getWidth(), this.getHeight());
@@ -192,16 +209,23 @@ public class Launcher extends Applet implements AppletStub {
 		g2d.setColor(this.getBackground());
 		if (!cancelled)
 		{
+			g2d.clearRect(0, 0, this.getWidth(), this.getHeight());
 			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-			int size1 = (int) (Math.min(this.getWidth(), this.getHeight()) * 0.8F);
+			int size1 = (int) (Math.min(this.getWidth(), this.getHeight()-40) * 0.5F);
 			int size2 = (int) (size1 * (2.00000D / 3.00000D));
-			g2d.translate(this.getWidth() / 2, this.getHeight() / 2);
-			g2d.rotate(Math.toRadians(deg*this.icoindx));
+			g2d.translate(this.getWidth() / 2, this.getHeight() / 2-40);
+			g2d.setColor(this.getForeground());
+			g2d.drawString(message, -g2d.getFontMetrics().stringWidth(message)/2, size1/2+32);
+			g2d.drawRect(-size1/2, size1/2+42, size1, 10);
+			g2d.fillRect(-size1/2, size1/2+42, (int) ((size1/100.0)*prog), 10);
+			g2d.setColor(this.getBackground());
+			g2d.rotate(Math.toRadians(this.icoindx));
 			g2d.drawImage(Launcher.loadicon, -size1 / 2, -size1 / 2, size1, size1, this);
-			g2d.rotate(Math.toRadians(-deg*this.icoindx));
+			g2d.rotate(Math.toRadians(-this.icoindx));
 			drawLines(g2d, 16, size1);
 			g2d.drawImage(Launcher.loadjava, -size2 / 2, -size2 / 2, size2, size2, this);
+			
 			g.drawImage(image, 0,0,this.getWidth(), this.getHeight(), this);
 		}
 		else g.drawRect(0, 0, getWidth(), getHeight());
@@ -214,7 +238,7 @@ public class Launcher extends Applet implements AppletStub {
 		for(int i = 0; i < count; i++)
 		{
 			
-			g2d.clearRect((int)-thicc/2,-this.getHeight()/2,(int)thicc,this.getHeight());
+			g2d.clearRect((int)-thicc/2,-size1/2,(int)thicc,size1);
 			g2d.rotate(Math.toRadians(inc));
 		}
 		thicc = size1*0.08;
@@ -230,8 +254,8 @@ public class Launcher extends Applet implements AppletStub {
 					while (applet == null && cancelled == false)
 					{
 						Thread.sleep(30L);
-						icoindx++;
-						if (icoindx > 115)
+						icoindx+=3;
+						if (icoindx >= 360)
 							icoindx = 0;
 						repaint();
 					}
@@ -302,7 +326,6 @@ public class Launcher extends Applet implements AppletStub {
 		Label label = new Label(string);
 		label.setForeground(Color.red);
 		this.add(label, BorderLayout.CENTER);
-		this.validateTree();
 		this.repaint();
 		this.validate();
 		

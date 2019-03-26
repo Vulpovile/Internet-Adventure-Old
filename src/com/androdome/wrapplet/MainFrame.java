@@ -4,7 +4,6 @@ import java.applet.Applet;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Image;
 import java.awt.Panel;
 import java.awt.ScrollPane;
 import java.io.File;
@@ -48,9 +47,6 @@ import org.xml.sax.SAXException;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -68,7 +64,7 @@ public class MainFrame extends JFrame{
 	ArrayList<Node> boxBinding = new ArrayList<Node>();
 
 	public static double JAVA_VERSION = getVersion();
-
+	ConnectionHandler conHandler = new ConnectionHandler();
 	static double getVersion() {
 		String version = System.getProperty("java.version");
 		int pos = version.indexOf('.');
@@ -81,7 +77,7 @@ public class MainFrame extends JFrame{
 	ScrollPane scrollPane = new ScrollPane();
 	private static final long serialVersionUID = 1L;
 	private Panel contentPane;
-	private JTextField textField;
+	JTextField navBar;
 	JLabel lblProg = new JLabel("Done.");
 	BrowserCanvas browser = null;
 
@@ -139,7 +135,6 @@ public class MainFrame extends JFrame{
 	}
 
 	private void init() {
-		URL.setURLStreamHandlerFactory(new ConfigurableStreamHandlerFactory("about", new Handler()));
 
 		try
 		{
@@ -171,17 +166,31 @@ public class MainFrame extends JFrame{
 
 			scrollPane.add(browser);
 			addComponentListener(new ComponentAdapter() {
-				public void componentResized(ComponentEvent componentEvent) {
-					// browser.setSize();
-					browser.createLayout(scrollPane.getSize());
-					for (int i = 0; i < componentBinding.size(); i++)
-					{
-						Box box = browser.getViewport().getElementBoxByNode(boxBinding.get(i));
-						componentBinding.get(i).setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
-						componentBinding.get(i).setSize(box.getMinimalWidth(), box.getHeight());
-						componentBinding.get(i).validate();
+				InvokeLaterThread invokeLater;
 
+				public void componentResized(ComponentEvent componentEvent) {
+					if (invokeLater != null)
+					{
+						invokeLater.cancel();
 					}
+					// browser.setSize();
+					invokeLater = new InvokeLaterThread(200) {
+
+						@Override
+						public void onInvokeLater() {
+							browser.createLayout(scrollPane.getSize());
+							for (int i = 0; i < componentBinding.size(); i++)
+							{
+								Box box = browser.getViewport().getElementBoxByNode(boxBinding.get(i));
+								componentBinding.get(i).setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
+								componentBinding.get(i).setSize(box.getMinimalWidth(), box.getHeight());
+								componentBinding.get(i).validate();
+
+							}
+						}
+					};
+					invokeLater.start();
+
 				}
 			});
 
@@ -199,7 +208,7 @@ public class MainFrame extends JFrame{
 							NamedNodeMap attr = box.getParent().getNode().getAttributes();
 							if (attr.getNamedItem("href") != null)
 							{
-								ConnectionHandler.navigate(MainFrame.this, browser.getBaseURL(), attr.getNamedItem("href").getNodeValue());
+								conHandler.navigate(MainFrame.this, browser.getBaseURL(), attr.getNamedItem("href").getNodeValue());
 							}
 						}
 					}
@@ -415,11 +424,11 @@ public class MainFrame extends JFrame{
 		JLabel lblAddress = new JLabel("Address:");
 		toolBar_1.add(lblAddress);
 		toolBar_1.addSeparator();
-		textField = new JTextField();
-		toolBar_1.add(textField);
+		navBar = new JTextField();
+		toolBar_1.add(navBar);
 
 		toolBar_1.addSeparator();
-		textField.setColumns(10);
+		navBar.setColumns(10);
 
 		JButton btnNavigate;
 		try
@@ -439,8 +448,8 @@ public class MainFrame extends JFrame{
 		toolBar_1.add(btnNavigate);
 		btnNavigate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String url = textField.getText().trim();
-				ConnectionHandler.navigate(MainFrame.this, url);
+				String url = navBar.getText().trim();
+				conHandler.navigate(MainFrame.this, url);
 
 			}
 
@@ -522,13 +531,15 @@ public class MainFrame extends JFrame{
 
 		System.out.println(codeBase);
 		final Launcher launcher = new Launcher();
+		launcher.setMessage("Getting codebase");
 		launcher.codebase = codeBase;
+		launcher.setMessage("Getting parameters");
 		launcher.setParams(params);
+		launcher.setMessage("Waiting for permission");
 		launcher.startThread();
 		Thread th = new Thread() {
 			public void run() {
-				URLClassLoader loader = new URLClassLoader(archives, null);
-
+				
 				AppletAcceptDialog dialog = new AppletAcceptDialog(name, archives, className, codeBase);
 				dialog.setVisible(true);
 				while (dialog.dialogResult == 0)
@@ -551,10 +562,23 @@ public class MainFrame extends JFrame{
 					launcher.setCancel();
 					return;
 				}
+				launcher.setMessage("Updating classloader");
+				launcher.setProgress(20);
+				URLClassLoader loader = new URLClassLoader(archives, null);
+
+				launcher.setProgress(40);
+
+				launcher.setMessage("Swapping context");
 				Thread.currentThread().setContextClassLoader(loader);
+				launcher.setProgress(50);
 				try
 				{
+
+					launcher.setMessage("Fetching applet");
+					launcher.setProgress(60);
 					Applet applet = createApplet(className, loader);
+					launcher.setMessage("Swapping applet");
+					launcher.setProgress(70);
 					launcher.replace(applet);
 				}
 				catch (UnsupportedClassVersionError er)
@@ -570,4 +594,32 @@ public class MainFrame extends JFrame{
 
 		return launcher;
 	}
+}
+
+abstract class InvokeLaterThread extends Thread {
+	protected boolean isCancelled = false;
+	int wait;
+
+	public InvokeLaterThread(int millis) {
+		wait = millis;
+	}
+
+	public void cancel() {
+		isCancelled = true;
+		this.interrupt();
+	}
+
+	public void run() {
+		try
+		{
+			Thread.sleep(wait);
+			if (!isCancelled)
+				onInvokeLater();
+		}
+		catch (InterruptedException e)
+		{
+		}
+	}
+
+	public abstract void onInvokeLater();
 }

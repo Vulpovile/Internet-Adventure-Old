@@ -11,27 +11,27 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLHandshakeException;
-import javax.swing.ProgressMonitor;
-import javax.swing.ProgressMonitorInputStream;
-
 import org.fit.cssbox.css.CSSNorm;
 import org.fit.cssbox.css.DOMAnalyzer;
 import org.fit.cssbox.demo.DOMSource;
 import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 public class ConnectionHandler
 {
 
-	public static void navigateError(MainFrame frame, String string,
+	public void navigateError(MainFrame frame, String string,
 			String errHtml) {
 		try
 		{
+			if(ct != null)
+				ct.cancel();
 			frame.clearComp();
 			URL url = new URL(string);
 			URLConnection con = url.openConnection();
@@ -113,24 +113,40 @@ public class ConnectionHandler
 		}
 		return new URL("http://" + a_url);
 	}
-
-	public static void navigate(final MainFrame frame, final String location) {
-		new Thread() {
+	CancelableThread ct = null;
+	public void navigate(final MainFrame frame, final String location) {
+		if(ct != null)
+			ct.cancel();
+		ct = new CancelableThread() {
+			@Override
 			public void run() {
+				if(cancelled)
+					return;
 				frame.lblProg.setText("Connecting...");
 				URL url;
 				try
 				{
 					url = make_url(location);
 					if (url == null) throw new MalformedURLException();
-
+					frame.navBar.setText(url.toString());
 					frame.clearComp();
+					if(cancelled)
+					{
+						frame.lblProg.setText("Cancelled.");
+						return;
+					}
 					InputStream is = getSiteData(frame, url);
 					frame.lblProg.setText("Parsing...");
 
 					// Parse the input document (replace this with your own
 					// parser)
 					DOMSource parser = new DOMSource(is);
+					if(cancelled)
+					{
+						is.close();
+						frame.lblProg.setText("Cancelled.");
+						return;
+					}
 					Document doc = parser.parse();
 
 					DOMAnalyzer da = new DOMAnalyzer(doc, url);
@@ -149,11 +165,21 @@ public class ConnectionHandler
 					// scrollPane.removeAll();
 
 					frame.lblProg.setText("Drawing...");
+					if(cancelled)
+					{
+						frame.lblProg.setText("Cancelled.");
+						return;
+					}
 					frame.browser.navigate(da.getRoot(), da,
 							new java.awt.Dimension(frame.scrollPane.getWidth(),
 									frame.scrollPane.getHeight()), url);
 
 					frame.lblProg.setText("Parsing Applets...");
+					if(cancelled)
+					{
+						frame.lblProg.setText("Cancelled.");
+						return;
+					}
 					frame.parseApplets(frame.browser);
 					// frame.parseComponents(frame.browser);
 					frame.browser.redrawBoxes();
@@ -161,7 +187,9 @@ public class ConnectionHandler
 					frame.browser.revalidate();
 					frame.validate();
 					frame.repaint();
+					frame.navBar.setText(url.toString());
 					frame.lblProg.setText("Done.");
+					ct = null;
 				}
 				catch (MalformedURLException e)
 				{
@@ -265,27 +293,29 @@ public class ConnectionHandler
 									+ HtmlUtils.stringToHTMLString(sStackTrace));
 				}
 			}
-		}.start();
+		};
+		ct.start();
 	}
 
 	public ConnectionHandler() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public static void navigate(MainFrame frame, URL baseURL, String nodeValue) {
+	public void navigate(MainFrame frame, URL baseURL, String nodeValue) {
 		try
 		{
-			URL url = new URL(baseURL, nodeValue);
-			navigate(frame, url.toString());
+			URI uri = baseURL.toURI();
+			//URL url = new URL(, nodeValue);
+			navigate(frame, uri.resolve(nodeValue).toString());
 		}
-		catch (MalformedURLException e)
+		catch (URISyntaxException e)
 		{
 			handleExcec(frame, nodeValue, e);
 		}
 	}
 
-	private static void handleExcec(MainFrame frame, String location,
-			MalformedURLException e) {
+	private void handleExcec(MainFrame frame, String location,
+			Exception e) {
 		frame.lblProg.setText("Error");
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
@@ -307,4 +337,15 @@ public class ConnectionHandler
 						+ HtmlUtils.stringToHTMLString(sStackTrace));
 	}
 
+}
+abstract class CancelableThread extends Thread
+{
+	protected boolean cancelled = false;
+	public final void cancel()
+	{
+		cancelled = true;
+		this.interrupt();
+	}
+	@Override
+	public abstract void run();
 }

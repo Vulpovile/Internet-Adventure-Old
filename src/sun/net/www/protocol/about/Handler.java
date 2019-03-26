@@ -1,4 +1,4 @@
-package com.androdome.wrapplet;
+package sun.net.www.protocol.about;
 
 import java.io.IOException;
 import java.net.URL;
