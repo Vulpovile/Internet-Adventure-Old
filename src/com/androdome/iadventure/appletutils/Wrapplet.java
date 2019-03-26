@@ -193,7 +193,7 @@ public class Wrapplet extends Applet implements AppletStub {
 		for(int i = 0; i < count; i++)
 		{
 			
-			g2d.clearRect((int)-thicc/2,-size1/2,(int)thicc,size1);
+			g2d.clearRect((int)-thicc/2,-size1/2-1,(int)thicc,size1+2);
 			g2d.rotate(Math.toRadians(inc));
 		}
 		thicc = size1*0.08;

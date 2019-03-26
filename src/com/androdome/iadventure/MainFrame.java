@@ -171,7 +171,7 @@ public class MainFrame extends JFrame{
 																// style sheet
 			da.getStyleSheets();
 
-			browser = new BrowserCanvas(da.getRoot(), da, scrollPane.getSize(), url);
+			browser = new BrowserCanvas(da.getRoot(), da, scrollPane.getViewportSize(), url);
 			browser.setLayout(null);
 			// browser.getViewport();
 			// browser.createLayout(new java.awt.Dimension(30,30));
@@ -191,7 +191,7 @@ public class MainFrame extends JFrame{
 
 						@Override
 						public void onInvokeLater() {
-							browser.createLayout(scrollPane.getSize());
+							browser.createLayout(scrollPane.getViewportSize());
 							for (int i = 0; i < componentBinding.size(); i++)
 							{
 								Box box = browser.getViewport().getElementBoxByNode(nodeBinding.get(i));
