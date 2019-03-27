@@ -286,20 +286,20 @@ public class MainFrame extends JFrame{
 			e1.printStackTrace(pw);
 			String sStackTrace = sw.toString();
 			pw.close();
-			JOptionPane.showMessageDialog(null, "Internet Adventure has crashed!\n\nCrash information:\n\n"+sStackTrace+"\n\nThis will also be in crashinfo.txt", "Crash", JOptionPane.ERROR_MESSAGE);
+			new CrashDialog(sStackTrace).setVisible(true);
 			e1.printStackTrace();
 			try
 			{
 				PrintWriter fw = new PrintWriter(new FileWriter("crashinfo.txt"));
 				e1.printStackTrace(fw);
 				fw.close();
-				System.exit(-1);
 			}
 			catch (IOException e)
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			System.exit(-1);
 		}
 	}
 

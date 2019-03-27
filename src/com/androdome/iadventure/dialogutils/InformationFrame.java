@@ -6,7 +6,6 @@ import java.awt.Dimension;
 import java.awt.Image;
 
 import javax.swing.ImageIcon;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -20,7 +19,7 @@ import java.awt.Font;
 import javax.swing.SwingConstants;
 import javax.swing.JSeparator;
 
-public class InformationDialog extends JDialog{
+public class InformationFrame extends JFrame{
 
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
@@ -72,7 +71,7 @@ public class InformationDialog extends JDialog{
 		lblTitle.setText("<html>"+titleContent+"</html>");
 	}
 	
-	public InformationDialog(String title, String titleContent, Image icon) {
+	public InformationFrame(String title, String titleContent, Image icon) {
 
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		this.setAlwaysOnTop(true);

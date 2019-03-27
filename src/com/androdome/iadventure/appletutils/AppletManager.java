@@ -11,7 +11,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -93,6 +92,7 @@ public class AppletManager {
 		wrapplet.startThread();
 		Thread th = new Thread() {
 			public void run() {
+				
 				
 				AppletAcceptDialog dialog = new AppletAcceptDialog(name, archives, className, codeBase);
 				dialog.setVisible(true);

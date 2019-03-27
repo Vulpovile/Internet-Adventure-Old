@@ -22,6 +22,8 @@ import java.awt.Font;
 import javax.swing.JCheckBox;
 import javax.swing.SwingConstants;
 
+import com.androdome.iadventure.appletutils.AppletVerifier.Signage;
+
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
@@ -30,10 +32,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.JarURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
-public class AppletAcceptDialog extends JFrame {
+public class AppletAcceptDialog extends JFrame
+{
 
 	/**
 	 * 
@@ -117,8 +123,9 @@ public class AppletAcceptDialog extends JFrame {
 	}
 
 	String codebase;
-
+	AppletVerifier.Signage signage = Signage.UNSIGNED;
 	public AppletAcceptDialog(String name, URL[] archives, String className, final String codeBase) {
+
 		codebase = codeBase;
 		if (isSiteTrusted(codeBase))
 		{
@@ -157,7 +164,20 @@ public class AppletAcceptDialog extends JFrame {
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		try
 		{
-			lblNewLabel.setIcon(new ImageIcon(ImageIO.read(this.getClass().getResourceAsStream("/okayscale.png")).getScaledInstance(48, 48, Image.SCALE_SMOOTH)));
+			if (archives.length >= 0)
+			{
+				signage = AppletVerifier.verifySignage(archives[0]);
+				if(signage == Signage.CORRUPT)
+					lblNewLabel.setIcon(new ImageIcon(ImageIO.read(this.getClass().getResourceAsStream("/stopscale.png")).getScaledInstance(48, 48, Image.SCALE_SMOOTH)));
+				else if(signage == Signage.UNSIGNED)
+					lblNewLabel.setIcon(new ImageIcon(ImageIO.read(this.getClass().getResourceAsStream("/warnscale.png")).getScaledInstance(48, 48, Image.SCALE_SMOOTH)));
+				else if(signage == Signage.SELFSIGNED)
+					lblNewLabel.setIcon(new ImageIcon(ImageIO.read(this.getClass().getResourceAsStream("/questionscale.png")).getScaledInstance(48, 48, Image.SCALE_SMOOTH)));
+				else if(signage == Signage.SIGNED)
+					lblNewLabel.setIcon(new ImageIcon(ImageIO.read(this.getClass().getResourceAsStream("/okscale.png")).getScaledInstance(48, 48, Image.SCALE_SMOOTH)));
+			}
+			else lblNewLabel.setIcon(new ImageIcon(ImageIO.read(this.getClass().getResourceAsStream("/warnscale.png")).getScaledInstance(48, 48, Image.SCALE_SMOOTH)));
+		
 
 		}
 		catch (IOException e1)
@@ -171,8 +191,7 @@ public class AppletAcceptDialog extends JFrame {
 		String ar = "";
 		for (int i = 0; i < archives.length; i++)
 		{
-			if (i != 0)
-				ar += ", ";
+			if (i != 0) ar += ", ";
 			ar += archives[i].toString().replace(codeBase, "");
 		}
 		JLabel lblMainClass = new JLabel("<html><b>Archives:</b> " + ar + "</html>");
@@ -217,8 +236,7 @@ public class AppletAcceptDialog extends JFrame {
 		btnRun.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dialogResult = DIALOG_RUN;
-				if (chckbxDoNotAsk.isSelected())
-					setSiteTrusted(codeBase);
+				if (chckbxDoNotAsk.isSelected()) setSiteTrusted(codeBase);
 				dispose();
 			}
 		});
