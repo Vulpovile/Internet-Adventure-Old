@@ -6,13 +6,11 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Panel;
-import java.awt.ScrollPane;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -21,6 +19,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 
@@ -86,7 +85,7 @@ public class MainFrame extends JFrame{
 
 	JPanel panel = new JPanel();
 
-	ScrollPane scrollPane = new ScrollPane();
+	JScrollPane scrollPane = new JScrollPane();
 	private static final long serialVersionUID = 1L;
 	private Panel contentPane;
 	JTextField navBar;
@@ -171,13 +170,13 @@ public class MainFrame extends JFrame{
 																// style sheet
 			da.getStyleSheets();
 
-			browser = new BrowserCanvas(da.getRoot(), da, scrollPane.getViewportSize(), url);
+			browser = new BrowserCanvas(da.getRoot(), da, scrollPane.getSize(), url);
 			browser.setLayout(null);
 			// browser.getViewport();
 			// browser.createLayout(new java.awt.Dimension(30,30));
 			// scrollPane.setBorder(new EtchedBorder());
 
-			scrollPane.add(browser);
+			scrollPane.setViewportView(browser);
 			addComponentListener(new ComponentAdapter() {
 				InvokeLaterThread invokeLater;
 
@@ -191,7 +190,7 @@ public class MainFrame extends JFrame{
 
 						@Override
 						public void onInvokeLater() {
-							browser.createLayout(scrollPane.getViewportSize());
+							browser.createLayout(scrollPane.getSize());
 							for (int i = 0; i < componentBinding.size(); i++)
 							{
 								Box box = browser.getViewport().getElementBoxByNode(nodeBinding.get(i));
@@ -367,7 +366,7 @@ public class MainFrame extends JFrame{
 
 		try
 		{
-			btnHome = new ImageButton(ImageIO.read(this.getClass().getResourceAsStream("/btn/home.png")), ImageIO.read(this.getClass().getResourceAsStream("/btn/homeDn.png")), ImageIO.read(this.getClass().getResourceAsStream("/btn/homeOvr.png")));
+			btnHome = new ImageButton("/btn/home");
 
 			Dimension d = new Dimension(32, 32);
 			btnHome.setSize(d);
@@ -441,7 +440,7 @@ public class MainFrame extends JFrame{
 		JButton btnNavigate;
 		try
 		{
-			btnNavigate = new ImageButton(ImageIO.read(this.getClass().getResourceAsStream("/btn/navUp.png")), ImageIO.read(this.getClass().getResourceAsStream("/btn/navDn.png")), ImageIO.read(this.getClass().getResourceAsStream("/btn/navOvr.png")));
+			btnNavigate = new ImageButton("/btn/nav");
 			btnNavigate.setSize(32, 32);
 			Dimension d = new Dimension(22, 22);
 			btnNavigate.setPreferredSize(d);

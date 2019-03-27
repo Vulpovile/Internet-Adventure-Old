@@ -61,7 +61,6 @@ public class Wrapplet extends Applet implements AppletStub {
 		}
 		catch (IOException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

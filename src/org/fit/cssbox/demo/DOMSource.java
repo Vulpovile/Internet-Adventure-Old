@@ -73,6 +73,9 @@ public class DOMSource
     {
         DOMParser parser = new DOMParser(new HTMLConfiguration());
         parser.setProperty("http://cyberneko.org/html/properties/names/elems", "lower");
+        //parser.setProperty("http://cyberneko.org/html/features/balance-tags/ignore-outside-content", true);
+        parser.setFeature("http://cyberneko.org/html/features/scanner/allow-selfclosing-tags", true);
+        parser.setProperty("http://cyberneko.org/html/properties/names/elems", "lower");
         if (charset != null)
             parser.setProperty("http://cyberneko.org/html/properties/default-encoding", charset);
         parser.parse(new org.xml.sax.InputSource(is));

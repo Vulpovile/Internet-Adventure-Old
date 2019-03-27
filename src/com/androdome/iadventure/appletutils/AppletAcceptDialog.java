@@ -2,7 +2,10 @@ package com.androdome.iadventure.appletutils;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Image;
 
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -48,24 +51,25 @@ public class AppletAcceptDialog extends JFrame {
 
 	/**
 	 * Create the dialog.
-	 * @param codeBase 
-	 * @param className 
-	 * @param archives 
-	 * @param name 
+	 * 
+	 * @param codeBase
+	 * @param className
+	 * @param archives
+	 * @param name
 	 */
-	
+
 	static File trustedSites = new File("TrustedSites.txt");
 	static ArrayList<String> trusted = new ArrayList<String>();
-	
+
 	static
 	{
-		if(trustedSites.exists())
+		if (trustedSites.exists())
 		{
 			try
 			{
 				BufferedReader reader = new BufferedReader(new FileReader(trustedSites));
 				String line;
-				while((line = reader.readLine()) != null)
+				while ((line = reader.readLine()) != null)
 					trusted.add(line);
 				reader.close();
 			}
@@ -88,32 +92,35 @@ public class AppletAcceptDialog extends JFrame {
 			}
 		}
 	}
-	
-	public boolean isSiteTrusted(String codebase)
-	{
+
+	public boolean isSiteTrusted(String codebase) {
 		return trusted.contains(codebase.toLowerCase());
-			//return true;
+		// return true;
 	}
-	
-	public void setSiteTrusted(String codebase)
-	{
+
+	public void setSiteTrusted(String codebase) {
 		codebase = codebase.toLowerCase();
 		trusted.add(codebase);
-		try{
+		try
+		{
 			BufferedWriter writer = new BufferedWriter(new FileWriter(trustedSites));
-			for(int i = 0; i < trusted.size(); i++)
+			for (int i = 0; i < trusted.size(); i++)
 			{
 				writer.write(trusted.get(i));
 				writer.newLine();
 			}
 			writer.close();
 		}
-		catch(Exception ex){}
+		catch (Exception ex)
+		{
+		}
 	}
+
 	String codebase;
+
 	public AppletAcceptDialog(String name, URL[] archives, String className, final String codeBase) {
 		codebase = codeBase;
-		if(isSiteTrusted(codeBase))
+		if (isSiteTrusted(codeBase))
 		{
 			this.dialogResult = DIALOG_RUN;
 			return;
@@ -123,58 +130,67 @@ public class AppletAcceptDialog extends JFrame {
 		this.setAlwaysOnTop(true);
 		setTitle("Warning - Security");
 		getContentPane().setLayout(new BorderLayout());
-		contentPanel.setPreferredSize(new Dimension(510,290));
+		contentPanel.setPreferredSize(new Dimension(510, 290));
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
-		
+
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.WHITE);
 		panel.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 		panel.setBounds(-15, -24, 544, 84);
 		contentPanel.add(panel);
 		panel.setLayout(null);
-		
-		JLabel lblAnAppletWants = new JLabel("Applet \""+name+"\" wants to run");
+
+		JLabel lblAnAppletWants = new JLabel("Applet \"" + name + "\" wants to run");
 		lblAnAppletWants.setFont(new Font("Tahoma", Font.BOLD, 18));
 		lblAnAppletWants.setBounds(23, 30, 410, 22);
 		panel.add(lblAnAppletWants);
-		
+
 		JLabel lblPermissionDoYou = new JLabel("Do you accept it?");
 		lblPermissionDoYou.setFont(new Font("Tahoma", Font.BOLD, 18));
 		lblPermissionDoYou.setBounds(23, 51, 410, 22);
 		panel.add(lblPermissionDoYou);
-		
+
 		JLabel lblNewLabel = new JLabel("");
 		lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		lblNewLabel.setIcon(UIManager.getIcon("OptionPane.warningIcon"));
+		try
+		{
+			lblNewLabel.setIcon(new ImageIcon(ImageIO.read(this.getClass().getResourceAsStream("/okayscale.png")).getScaledInstance(48, 48, Image.SCALE_SMOOTH)));
+
+		}
+		catch (IOException e1)
+		{
+			lblNewLabel.setIcon(UIManager.getIcon(UIManager.getIcon("OptionPane.warningIcon")));
+			e1.printStackTrace();
+		}
 		lblNewLabel.setBounds(458, 22, 64, 62);
 		panel.add(lblNewLabel);
-		
+
 		String ar = "";
-		for(int i = 0; i < archives.length; i++)
+		for (int i = 0; i < archives.length; i++)
 		{
-			if(i != 0)
-				ar+= ", ";
+			if (i != 0)
+				ar += ", ";
 			ar += archives[i].toString().replace(codeBase, "");
 		}
-		JLabel lblMainClass = new JLabel("<html><b>Archives:</b> "+ar+"</html>");
+		JLabel lblMainClass = new JLabel("<html><b>Archives:</b> " + ar + "</html>");
 		lblMainClass.setBounds(14, 71, 486, 14);
 		contentPanel.add(lblMainClass);
-		
+
 		JLabel lblPublisherUnknown = new JLabel("<html><b>Publisher:</b> UNKNOWN</html>");
 		lblPublisherUnknown.setBounds(14, 96, 486, 14);
 		contentPanel.add(lblPublisherUnknown);
-		
-		JLabel lblmainClassNull = new JLabel("<html><b>Main Class:</b> "+className+"</html>");
+
+		JLabel lblmainClassNull = new JLabel("<html><b>Main Class:</b> " + className + "</html>");
 		lblmainClassNull.setBounds(14, 121, 486, 14);
 		contentPanel.add(lblmainClassNull);
-		
-		JLabel lblfrom = new JLabel("<html><b>From:</b> "+codeBase+"</html>");
+
+		JLabel lblfrom = new JLabel("<html><b>From:</b> " + codeBase + "</html>");
 		lblfrom.setBounds(14, 146, 486, 14);
 		contentPanel.add(lblfrom);
-		
+
 		final JCheckBox chckbxDoNotAsk = new JCheckBox("Always trust content from this website");
 		chckbxDoNotAsk.setBounds(10, 167, 282, 23);
 		contentPanel.add(chckbxDoNotAsk);
@@ -182,11 +198,11 @@ public class AppletAcceptDialog extends JFrame {
 		panel_1.setBounds(-15, 240, 575, 84);
 		contentPanel.add(panel_1);
 		panel_1.setLayout(null);
-		
+
 		JLabel lblRunningUnknownApplets = new JLabel("Running untrusted Applets can pose a security risk.");
 		lblRunningUnknownApplets.setBounds(25, 11, 491, 14);
 		panel_1.add(lblRunningUnknownApplets);
-		
+
 		JButton btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -196,12 +212,12 @@ public class AppletAcceptDialog extends JFrame {
 		});
 		btnCancel.setBounds(411, 206, 89, 23);
 		contentPanel.add(btnCancel);
-		
+
 		JButton btnRun = new JButton("Run");
 		btnRun.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				dialogResult = DIALOG_RUN;
-				if(chckbxDoNotAsk.isSelected())
+				if (chckbxDoNotAsk.isSelected())
 					setSiteTrusted(codeBase);
 				dispose();
 			}
@@ -211,10 +227,10 @@ public class AppletAcceptDialog extends JFrame {
 		pack();
 		this.setLocationRelativeTo(null);
 	}
+
 	@Override()
-	public void setVisible(boolean vis)
-	{
-		if(isSiteTrusted(codebase))
+	public void setVisible(boolean vis) {
+		if (isSiteTrusted(codebase))
 		{
 			this.dialogResult = DIALOG_RUN;
 			this.dispose();
