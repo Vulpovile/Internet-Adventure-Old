@@ -11,13 +11,16 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.PKIXParameters;
 import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Vector;
@@ -25,13 +28,16 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-public class AppletVerifier
-{
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+public class AppletVerifier {
 	public static enum Signage {
-		UNSIGNED, SELFSIGNED, SIGNED, CORRUPT, EXPIRED
+		CORRUPT, UNSIGNED, EXPIRED, SELFSIGNED, SIGNED
 	}
 
-	public static Signage verifySignage(URL archive) {
+	public static CertData verifySignage(URL archive) {
 		URL jarUrl;
 		try
 		{
@@ -40,7 +46,7 @@ public class AppletVerifier
 		catch (MalformedURLException e1)
 		{
 			e1.printStackTrace();
-			return Signage.CORRUPT;
+			return new CertData(Signage.CORRUPT, null);
 		}
 		JarFile jf = null;
 		try
@@ -48,7 +54,8 @@ public class AppletVerifier
 			Vector<JarEntry> entriesVec = new Vector<JarEntry>();
 			jf = ((JarURLConnection) jarUrl.openConnection()).getJarFile();
 			Manifest man = jf.getManifest();
-			if (man == null) return Signage.UNSIGNED;
+			if (man == null)
+				return new CertData(Signage.UNSIGNED, null);
 			else
 			{
 				try
@@ -61,7 +68,8 @@ public class AppletVerifier
 						JarEntry je = (JarEntry) entries.nextElement();
 
 						// Skip directories.
-						if (je.isDirectory()) continue;
+						if (je.isDirectory())
+							continue;
 
 						entriesVec.addElement(je);
 						InputStream is = jf.getInputStream(je);
@@ -75,56 +83,109 @@ public class AppletVerifier
 						}
 						is.close();
 					}
-					
-					
+
 					Enumeration<JarEntry> e = entriesVec.elements();
 					ArrayList<X509Certificate> certList = getTrustedCerts();
-				    while (e.hasMoreElements()) {
-					JarEntry je = (JarEntry) e.nextElement();
+					while (e.hasMoreElements())
+					{
+						JarEntry je = (JarEntry) e.nextElement();
 
-					// Every file must be signed except files in META-INF.
-					Certificate[] certs = je.getCertificates();
-					if ((certs == null) || (certs.length == 0)) {
-					    if (!je.getName().startsWith("META-INF"))
-						return Signage.UNSIGNED;
-					} else {
-					    // Check whether the file is signed by the expected
-					    // signer. The jar may be signed by multiple signers.
-					    // See if one of the signers is 'targetCert'.
-					    int startIndex = 0;
-					    X509Certificate[] certChain;
-
-					    while ((certChain = getAChain(certs, startIndex)) != null) {
-					    	for(int i = 0; i < certChain.length; i++)
-					    	{
-						    	System.out.println(certChain[i].getIssuerDN().getName());
-						    	for(X509Certificate tCert : certList)
-						    	{
-						    		System.out.println(tCert.getType());
-						    		try{
-						    			certChain[i].checkValidity();
-						    		}
-						    		catch(CertificateExpiredException ex)
-						    		{
-						    			return Signage.EXPIRED;
-						    		}
-									if (tCert == certChain[i]) {
-									    return Signage.SIGNED;
-								}
-					    	}
+						// Every file must be signed except files in META-INF.
+						Certificate[] certs = je.getCertificates();
+						if ((certs == null) || (certs.length == 0))
+						{
+							if (!je.getName().startsWith("META-INF"))
+								return new CertData(Signage.UNSIGNED, null);
 						}
-						// Proceed to the next chain.
-						startIndex += certChain.length;
-					    }
+						else
+						{
+							// Check whether the file is signed by the expected
+							// signer. The jar may be signed by multiple
+							// signers.
+							// See if one of the signers is 'targetCert'.
+							TrustManagerFactory factory = TrustManagerFactory.getInstance("PKIX");
+							factory.init((KeyStore)null);
+							TrustManager[] trustManagers = factory.getTrustManagers();
+							CertData currTrusted = null;
+							int startIndex = 0;
+							X509Certificate[] certChain;
+							while ((certChain = getAChain(certs, startIndex)) != null)
+							{
+								try
+								{
+									certChain[0].checkValidity();
+									if(true)
+									{
+										for(TrustManager trustedManager : trustManagers)
+										{
+											if(trustedManager instanceof X509TrustManager)
+											{
+												X509TrustManager tm = (X509TrustManager) trustedManager;
+												try
+												{
+													tm.checkClientTrusted(certChain, certChain[0].getSigAlgOID());
+												
+													return new CertData(Signage.SIGNED, certChain[0]);
+												}
+												catch (CertificateException e1)
+												{
+													try
+													{
+														tm.checkServerTrusted(certChain, certChain[0].getSigAlgOID());
+														
+														return new CertData(Signage.SIGNED, certChain[0]);
+													}
+													catch (CertificateException e2)
+													{
+														// TODO Auto-generated catch block
+														e2.printStackTrace();
+													}
+												}
+												
+											}
+										}
+										
+									}
+										if(currTrusted == null || currTrusted.signage.compareTo(Signage.SELFSIGNED) > 0)
+											currTrusted =  new CertData(Signage.SELFSIGNED, certChain[0]);
+									
+								}
+								catch (CertificateExpiredException e1)
+								{
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+									if(currTrusted == null || currTrusted.signage.compareTo(Signage.EXPIRED) > 0)
+										currTrusted = new CertData(Signage.EXPIRED, certChain[0]);
+								}
+								catch (CertificateNotYetValidException e1)
+								{
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+									if(currTrusted == null || currTrusted.signage.compareTo(Signage.CORRUPT) > 0)
+										currTrusted = new CertData(Signage.CORRUPT, certChain[0]);
+								}
+								startIndex += certChain.length;
+							}
+							if(currTrusted != null)
+								return currTrusted;
+						}
 					}
-				    }  
-					
-					return Signage.SELFSIGNED;
+					return new CertData(Signage.UNSIGNED, null);
 				}
-				catch (Exception ex)
+				catch (IOException ex)
 				{
 					ex.printStackTrace();
-					return Signage.CORRUPT;
+					return new CertData(Signage.CORRUPT, null);
+				}
+				catch (NoSuchAlgorithmException e2)
+				{
+					e2.printStackTrace();
+					return new CertData(Signage.CORRUPT, null);
+				}
+				catch (KeyStoreException e2)
+				{
+					e2.printStackTrace();
+					return new CertData(Signage.CORRUPT, null);
 				}
 			}
 		}
@@ -132,41 +193,47 @@ public class AppletVerifier
 		{
 			e.printStackTrace();
 		}
-		return Signage.CORRUPT;
+		return new CertData(Signage.CORRUPT, null);
 	}
 
-	
 	public static ArrayList<X509Certificate> getTrustedCerts() {
 		ArrayList<X509Certificate> certs = new ArrayList<X509Certificate>();
-        try {
-            // Load the JDK's cacerts keystore file
-            String filename = System.getProperty("java.home") + "/lib/security/cacerts".replace('/', File.separatorChar);
-            FileInputStream is = new FileInputStream(filename);
-            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-            String password = "changeit";
-            keystore.load(is, password.toCharArray());
+		try
+		{
+			// Load the JDK's cacerts keystore file
+			String filename = System.getProperty("java.home") + "/lib/security/cacerts".replace('/', File.separatorChar);
+			FileInputStream is = new FileInputStream(filename);
+			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+			String password = "changeit";
+			keystore.load(is, password.toCharArray());
 
-            // This class retrieves the most-trusted CAs from the keystore
-            PKIXParameters params = new PKIXParameters(keystore);
+			// This class retrieves the most-trusted CAs from the keystore
+			PKIXParameters params = new PKIXParameters(keystore);
 
-            // Get the set of trust anchors, which contain the most-trusted CA certificates
-            Iterator<TrustAnchor> it = params.getTrustAnchors().iterator();
-            while( it.hasNext() ) {
-                TrustAnchor ta = (TrustAnchor)it.next();
-                // Get certificate
-                X509Certificate cert = ta.getTrustedCert();
-                certs.add(cert);
-                //if(cert.getIssuerDN().getName().contains("Thawte"))
-                	//System.out.println(cert.getIssuerDN().getName());
-            }
-            return certs;
-        } catch (Exception e) {
-        	return null;
-        } 
-    }
-	
+			// Get the set of trust anchors, which contain the most-trusted CA
+			// certificates
+			Iterator<TrustAnchor> it = params.getTrustAnchors().iterator();
+			while (it.hasNext())
+			{
+				TrustAnchor ta = (TrustAnchor) it.next();
+
+				// Get certificate
+				X509Certificate cert = ta.getTrustedCert();
+				certs.add(cert);
+				// if(cert.getIssuerDN().getName().contains("Thawte"))
+				// System.out.println(cert.getIssuerDN().getName());
+			}
+			return certs;
+		}
+		catch (Exception e)
+		{
+			return null;
+		}
+	}
+
 	private static X509Certificate[] getAChain(Certificate[] certs, int startIndex) {
-		if (startIndex > certs.length - 1) return null;
+		if (startIndex > certs.length - 1)
+			return null;
 
 		int i;
 		// Keep going until the next certificate is not the

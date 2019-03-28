@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Panel;
+import java.awt.ScrollPane;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,7 +86,7 @@ public class MainFrame extends JFrame{
 
 	JPanel panel = new JPanel();
 
-	JScrollPane scrollPane = new JScrollPane();
+	ScrollPane scrollPane = new ScrollPane();
 	private static final long serialVersionUID = 1L;
 	private Panel contentPane;
 	JTextField navBar;
@@ -176,7 +177,7 @@ public class MainFrame extends JFrame{
 			// browser.createLayout(new java.awt.Dimension(30,30));
 			// scrollPane.setBorder(new EtchedBorder());
 
-			scrollPane.setViewportView(browser);
+			scrollPane.add(browser);
 			addComponentListener(new ComponentAdapter() {
 				InvokeLaterThread invokeLater;
 

@@ -79,7 +79,7 @@ public class AppletManager {
 		}
 	}
 	
-	public static Applet getApplet(final String name, final URL[] archives, final String className, HashMap<String, String> params, final String codeBase, final ExtendedAppletContext context) {
+	public static Applet getApplet(final String name, final URL[] archives, final String className, HashMap<String, String> params, final String codeBase, final ExtendedAppletContext context, final boolean isJar) {
 
 		System.out.println(codeBase);
 		final Wrapplet wrapplet = new Wrapplet();
@@ -93,8 +93,10 @@ public class AppletManager {
 		Thread th = new Thread() {
 			public void run() {
 				
-				
-				AppletAcceptDialog dialog = new AppletAcceptDialog(name, archives, className, codeBase);
+				URL[] arJ = null;
+				if(isJar)
+					arJ = archives;
+				AppletAcceptDialog dialog = new AppletAcceptDialog(name, arJ, className, codeBase);
 				dialog.setVisible(true);
 				while (dialog.dialogResult == 0)
 					try
@@ -186,6 +188,7 @@ public class AppletManager {
 			appletContainer.setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
 
 			appletContainer.setSize(box.getMinimalWidth(), box.getHeight());
+			boolean isJar = true;
 			URL[] arUrl;
 			if (box.getNode().getAttributes().getNamedItem("archive") != null)
 			{
@@ -203,7 +206,11 @@ public class AppletManager {
 					}
 				}
 			}
-			else arUrl = new URL[] { cbStarter };
+			else 
+			{
+				isJar = false;
+				arUrl = new URL[] { cbStarter };
+			}
 			// System.out.println(cb);
 			Node nameNode = box.getNode().getAttributes().getNamedItem("name");
 			String name = "Unnamed Applet";
@@ -225,7 +232,7 @@ public class AppletManager {
 				}
 				name = pName;
 			}
-			Applet applet = getApplet(name, arUrl, code, params, cb, frame.appletContext);
+			Applet applet = getApplet(name, arUrl, code, params, cb, frame.appletContext, isJar);
 			appletContainer.add(applet);
 			frame.addComponentNodeBinding(appletContainer, box.getNode());
 			browser.add(appletContainer);

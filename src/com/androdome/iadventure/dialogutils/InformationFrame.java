@@ -77,7 +77,6 @@ public class InformationFrame extends JFrame{
 		this.setAlwaysOnTop(true);
 		setTitle(title);
 		contentPanel.setLayout(new BorderLayout());
-		contentPanel.setPreferredSize(new Dimension(510, 290));
 		contentPanel.setBorder(null);
 		lblTitle.setText("<html>"+titleContent+"</html>");
 		contentPanel.setLayout(new BorderLayout(0, 0));
