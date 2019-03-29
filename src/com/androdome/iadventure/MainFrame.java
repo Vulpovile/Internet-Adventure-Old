@@ -17,6 +17,7 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -147,6 +148,11 @@ public class MainFrame extends JFrame {
 
 					}
 				}
+		}
+		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+		for(Thread t : threadSet)
+		{
+			t.interrupt();
 		}
 		if (appletContext != null)
 			appletContext.dispose();
