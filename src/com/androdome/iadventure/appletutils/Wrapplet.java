@@ -15,6 +15,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 
@@ -111,6 +112,9 @@ public class Wrapplet extends Applet implements AppletStub {
 		{
 			applet.destroy();
 			super.destroy();
+			Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+			for(Thread t : threadSet)
+				try{t.interrupt();}catch(Throwable ex){};
 			applet = null;
 			return;
 		}
