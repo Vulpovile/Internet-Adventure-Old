@@ -6,7 +6,9 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Panel;
+import java.awt.Point;
 import java.awt.ScrollPane;
+import java.io.DataOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +22,6 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 
@@ -30,6 +31,9 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
+import java.awt.event.WindowListener;
 
 import javax.swing.JToolBar;
 import javax.swing.JButton;
@@ -60,6 +64,13 @@ import javax.swing.JMenu;
 
 public class MainFrame extends JFrame{
 
+	public static final int RESX = 0;
+	public static final int RESY = 1;
+	public static final int POSX = 2;
+	public static final int POSY = 3;
+	public static final int SD = 4;
+	public static final int SHOW = 5;
+	public static final int HIDE = 6;
 	/**
 	 * 
 	 */
@@ -67,6 +78,9 @@ public class MainFrame extends JFrame{
 	JProgressBar progressBar = new JProgressBar();
 	ArrayList<Component> componentBinding = new ArrayList<Component>();
 	ArrayList<Node> nodeBinding = new ArrayList<Node>();
+	ArrayList<Process> processPBinding = new ArrayList<Process>();
+	ArrayList<Component> componentPBinding = new ArrayList<Component>();
+	ArrayList<Node> nodePBinding = new ArrayList<Node>();
 	public ExtendedAppletContext appletContext = null;
 	
 	public synchronized void addComponentNodeBinding(Component comp, Node node)
@@ -178,6 +192,50 @@ public class MainFrame extends JFrame{
 			// scrollPane.setBorder(new EtchedBorder());
 
 			scrollPane.add(browser);
+			
+			addWindowFocusListener(new WindowFocusListener(){
+
+				@Override
+				public void windowGainedFocus(WindowEvent arg0) {
+					for (int i = 0; i < processPBinding.size(); i++)
+					{
+						try
+						{
+							DataOutputStream os = new DataOutputStream(processPBinding.get(i).getOutputStream());
+							os.writeInt(SHOW);
+							os.flush();
+						}
+						catch (IOException e)
+						{
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+					}
+				}
+
+				@Override
+				public void windowLostFocus(WindowEvent arg0) {
+					System.out.println("Lost!");
+					for (int i = 0; i < processPBinding.size(); i++)
+					{
+						try
+						{
+							DataOutputStream os = new DataOutputStream(processPBinding.get(i).getOutputStream());
+							os.writeInt(HIDE);
+							os.flush();
+						}
+						catch (IOException e)
+						{
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+					}
+				}
+				
+			});
+			
 			addComponentListener(new ComponentAdapter() {
 				InvokeLaterThread invokeLater;
 
@@ -198,6 +256,35 @@ public class MainFrame extends JFrame{
 								componentBinding.get(i).setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
 								componentBinding.get(i).setSize(box.getMinimalWidth(), box.getHeight());
 								componentBinding.get(i).validate();
+
+							}
+							for (int i = 0; i < processPBinding.size(); i++)
+							{
+								Box box = browser.getViewport().getElementBoxByNode(nodePBinding.get(i));
+								componentPBinding.get(i).setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
+								componentPBinding.get(i).setSize(box.getMinimalWidth(), box.getHeight());
+								componentPBinding.get(i).validate();
+								Point bloc = componentPBinding.get(i).getLocationOnScreen();
+								try
+								{
+									DataOutputStream os = new DataOutputStream(processPBinding.get(i).getOutputStream());
+									os.writeInt(RESX);
+									os.writeInt(box.getMinimalWidth());
+									os.writeInt(RESY);
+									os.writeInt(box.getHeight());
+									os.writeInt(POSX);
+									os.writeInt(bloc.x+box.getAbsoluteContentX());
+									os.writeInt(box.getHeight());
+									os.writeInt(POSY);
+									os.writeInt(bloc.y+box.getAbsoluteContentY());
+									os.flush();
+									System.out.println("Wrote to proc");
+								}
+								catch (IOException e)
+								{
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 
 							}
 						}
@@ -479,6 +566,12 @@ public class MainFrame extends JFrame{
 		panel.setBackground(Color.WHITE);
 		// scrollPane.setViewportView(panel);
 		panel.setLayout(new BorderLayout(0, 0));
+	}
+
+	public void addProcessNodeBinding(Process proc, Node node, Component comp) {
+		this.componentPBinding.add(comp);
+		this.processPBinding.add(proc);
+		this.nodePBinding.add(node);
 	}
 }
 

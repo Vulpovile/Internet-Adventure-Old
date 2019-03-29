@@ -2,15 +2,21 @@ package com.androdome.iadventure.appletutils;
 
 import java.applet.Applet;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.AllPermission;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -32,7 +38,7 @@ public class AppletManager {
 
 			return (Applet) appletClass.newInstance();
 		}
-		catch (Exception ex)
+		catch (Throwable ex)
 		{
 			return null;
 
@@ -41,34 +47,45 @@ public class AppletManager {
 	}
 	
 	// TODO
-	public static Process getAppletSeperateJVM(final String name, final URL[] archives, final String className, HashMap<String, String> params, final String codeBase) {
+	public static Process getAppletSeperateJVM(final String name, final URL[] archives, final String className, HashMap<String, String> params, final String codeBase, Point location, Dimension size) {
 
 		String jvm_location;
 		if (System.getProperty("os.name").startsWith("Win"))
 		{
-			jvm_location = System.getProperties().getProperty("java.home") + File.separator + "bin" + File.separator + "java.exe";
+			jvm_location = System.getProperties().getProperty("java.home") + File.separator + "bin" + File.separator + "javaw.exe";
 		}
 		else
 		{
-			jvm_location = System.getProperties().getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+			jvm_location = System.getProperties().getProperty("java.home") + File.separator + "bin" + File.separator + "javaw";
 		}
-		String procArgs = "\"" + jvm_location + "\" -jar SeperatedApplet.jar";
-		procArgs += " \"classname:" + className + "\"";
-		procArgs += " \"name:" + name + "\"";
-		procArgs += " \"codebase:" + codeBase + "\"";
+		ProcessBuilder pb = new ProcessBuilder();
+		ArrayList<String> args = new ArrayList<String>();
+		args.add(jvm_location);
+		args.add("-jar");
+		args.add("SeperatedApplet.jar");
+		args.add("classname:" + className);
+		args.add("name:" + name);
+		args.add("codebase:" + codeBase);
+		args.add("width:" + size.width);
+		args.add("height:" + size.height);
+		args.add("x:" + location.x);
+		args.add("y:" + location.y);
 		for (int i = 0; i < archives.length; i++)
 		{
-			procArgs += " \"archive:" + archives[i] + "\"";
+			args.add("archive:" + archives[i]);
 		}
 		Object[] keys = params.keySet().toArray();
 		for (int i = 0; i < keys.length; i++)
 		{
-			procArgs += " \"param:" + keys[i] + "\"";
-			procArgs += " \"value:" + params.get(keys[i]) + "\"";
+			args.add("param:" + keys[i]);
+			args.add("value:" + params.get(keys[i]));
 		}
 		try
 		{
-			Process proc = Runtime.getRuntime().exec(procArgs);
+			Process proc = pb.command(args).start();
+			new PreventCrashThread(proc.getInputStream()).start();
+			new PreventCrashThread(proc.getErrorStream()).start();
+			System.out.println("Started proc");
 			return proc;
 		}
 		catch (IOException e)
@@ -144,6 +161,7 @@ public class AppletManager {
 
 					er.printStackTrace();
 				}
+				
 			}
 		};
 		th.start();
@@ -168,6 +186,7 @@ public class AppletManager {
 			{
 				if (nodes.item(i).getNodeName().equalsIgnoreCase("param"))
 				{
+					if(nodes.item(i).getAttributes().getNamedItem("name") != null && nodes.item(i).getAttributes().getNamedItem("value") != null)
 					params.put(nodes.item(i).getAttributes().getNamedItem("name").getNodeValue(), nodes.item(i).getAttributes().getNamedItem("value").getNodeValue());
 				}
 			}
@@ -232,10 +251,23 @@ public class AppletManager {
 				}
 				name = pName;
 			}
-			Applet applet = getApplet(name, arUrl, code, params, cb, frame.appletContext, isJar);
-			appletContainer.add(applet);
-			frame.addComponentNodeBinding(appletContainer, box.getNode());
-			browser.add(appletContainer);
+			if(params.get("separate_jvm") == null || params.get("separate_jvm").trim().equals("false"))
+			{
+
+				System.out.println("Got inner jvm");
+				Applet applet = getApplet(name, arUrl, code, params, cb, frame.appletContext, isJar);
+				appletContainer.add(applet);
+				frame.addComponentNodeBinding(appletContainer, box.getNode());
+				browser.add(appletContainer);
+			}
+			else
+			{
+				browser.add(appletContainer);
+				System.out.println("Got seperate jvm");
+				Process proc = getAppletSeperateJVM(name, arUrl, code, params, cb, appletContainer.getLocationOnScreen(), appletContainer.getSize());
+				frame.addProcessNodeBinding(proc, box.getNode(), appletContainer);
+				//browser.remove(appletContainer);
+			}
 			}
 			catch (Exception e1)
 			{
@@ -261,4 +293,30 @@ public class AppletManager {
 		browser.revalidate();
 	}
 
+}
+
+class PreventCrashThread extends Thread
+{
+	//OutputStream stream;
+	InputStream stream;
+	PreventCrashThread(InputStream process)
+	{
+		stream = process;
+	}
+	public void run() {
+		while(true)
+		{
+			try {
+				if(stream.read() == -1)
+				{
+					System.out.println("Process Exited");
+					break;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				break;
+			}
+		}
+	}
+	
 }

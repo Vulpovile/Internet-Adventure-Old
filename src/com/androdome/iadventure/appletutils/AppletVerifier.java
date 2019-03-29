@@ -85,7 +85,6 @@ public class AppletVerifier {
 					}
 
 					Enumeration<JarEntry> e = entriesVec.elements();
-					ArrayList<X509Certificate> certList = getTrustedCerts();
 					while (e.hasMoreElements())
 					{
 						JarEntry je = (JarEntry) e.nextElement();
@@ -194,41 +193,6 @@ public class AppletVerifier {
 			e.printStackTrace();
 		}
 		return new CertData(Signage.CORRUPT, null);
-	}
-
-	public static ArrayList<X509Certificate> getTrustedCerts() {
-		ArrayList<X509Certificate> certs = new ArrayList<X509Certificate>();
-		try
-		{
-			// Load the JDK's cacerts keystore file
-			String filename = System.getProperty("java.home") + "/lib/security/cacerts".replace('/', File.separatorChar);
-			FileInputStream is = new FileInputStream(filename);
-			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-			String password = "changeit";
-			keystore.load(is, password.toCharArray());
-
-			// This class retrieves the most-trusted CAs from the keystore
-			PKIXParameters params = new PKIXParameters(keystore);
-
-			// Get the set of trust anchors, which contain the most-trusted CA
-			// certificates
-			Iterator<TrustAnchor> it = params.getTrustAnchors().iterator();
-			while (it.hasNext())
-			{
-				TrustAnchor ta = (TrustAnchor) it.next();
-
-				// Get certificate
-				X509Certificate cert = ta.getTrustedCert();
-				certs.add(cert);
-				// if(cert.getIssuerDN().getName().contains("Thawte"))
-				// System.out.println(cert.getIssuerDN().getName());
-			}
-			return certs;
-		}
-		catch (Exception e)
-		{
-			return null;
-		}
 	}
 
 	private static X509Certificate[] getAChain(Certificate[] certs, int startIndex) {

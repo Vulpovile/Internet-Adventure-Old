@@ -101,6 +101,7 @@ public class Wrapplet extends Applet implements AppletStub {
 		if (applet != null)
 		{
 			applet.stop();
+			super.stop();
 			return;
 		}
 	}
@@ -109,6 +110,7 @@ public class Wrapplet extends Applet implements AppletStub {
 		if (applet != null)
 		{
 			applet.destroy();
+			super.destroy();
 			return;
 		}
 	}
@@ -121,7 +123,10 @@ public class Wrapplet extends Applet implements AppletStub {
 		setMessage("Setting stub");
 		setProgress(90);
 		if(applet == null)
+		{
 			this.setCancel("Applet returned null");
+			return;
+		}
 		applet.setStub(this);
 		applet.setSize(getWidth(), getHeight());
 
@@ -132,6 +137,7 @@ public class Wrapplet extends Applet implements AppletStub {
 		setProgress(100);
 		applet.init();
 		applet.start();
+		this.
 		validate();
 	}
 
@@ -217,7 +223,6 @@ public class Wrapplet extends Applet implements AppletStub {
 				catch (Exception ex)
 				{
 				}
-
 			}
 		}.start();
 	}
