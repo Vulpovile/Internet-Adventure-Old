@@ -111,6 +111,7 @@ public class Wrapplet extends Applet implements AppletStub {
 		{
 			applet.destroy();
 			super.destroy();
+			applet = null;
 			return;
 		}
 	}

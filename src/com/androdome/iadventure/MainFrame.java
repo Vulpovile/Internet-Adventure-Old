@@ -62,7 +62,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 
-public class MainFrame extends JFrame{
+public class MainFrame extends JFrame {
 
 	public static final int RESX = 0;
 	public static final int RESY = 1;
@@ -82,15 +82,15 @@ public class MainFrame extends JFrame{
 	ArrayList<Component> componentPBinding = new ArrayList<Component>();
 	ArrayList<Node> nodePBinding = new ArrayList<Node>();
 	public ExtendedAppletContext appletContext = null;
-	
-	public synchronized void addComponentNodeBinding(Component comp, Node node)
-	{
+
+	public synchronized void addComponentNodeBinding(Component comp, Node node) {
 		componentBinding.add(comp);
 		nodeBinding.add(node);
 	}
 
 	public static double JAVA_VERSION = getVersion();
 	ConnectionHandler conHandler = new ConnectionHandler();
+
 	static double getVersion() {
 		String version = System.getProperty("java.version");
 		int pos = version.indexOf('.');
@@ -132,15 +132,23 @@ public class MainFrame extends JFrame{
 		Component[] comps = browser.getComponents();
 		for (int i = 0; i < comps.length; i++)
 		{
-			if (comps[i] instanceof Applet)
-			{
-				Applet app = (Applet) comps[i];
-				app.stop();
-				app.destroy();
+			System.out.println(comps[i].getClass().getCanonicalName());
+			if (comps[i] instanceof JPanel)
+				for (Component a : ((JPanel) comps[i]).getComponents())
+				{
+					if (a instanceof Applet)
+					{
+						System.out.println("Destroyed applet");
+						Applet app = (Applet) a;
+						app.stop();
+						app.destroy();
+						a = null;
+						app = null;
 
-			}
+					}
+				}
 		}
-		if(appletContext != null)
+		if (appletContext != null)
 			appletContext.dispose();
 		appletContext = null;
 		this.componentBinding.clear();
@@ -192,8 +200,8 @@ public class MainFrame extends JFrame{
 			// scrollPane.setBorder(new EtchedBorder());
 
 			scrollPane.add(browser);
-			
-			addWindowFocusListener(new WindowFocusListener(){
+
+			addWindowFocusListener(new WindowFocusListener() {
 
 				@Override
 				public void windowGainedFocus(WindowEvent arg0) {
@@ -233,9 +241,9 @@ public class MainFrame extends JFrame{
 
 					}
 				}
-				
+
 			});
-			
+
 			addComponentListener(new ComponentAdapter() {
 				InvokeLaterThread invokeLater;
 
@@ -273,10 +281,10 @@ public class MainFrame extends JFrame{
 									os.writeInt(RESY);
 									os.writeInt(box.getHeight());
 									os.writeInt(POSX);
-									os.writeInt(bloc.x+box.getAbsoluteContentX());
+									os.writeInt(bloc.x + box.getAbsoluteContentX());
 									os.writeInt(box.getHeight());
 									os.writeInt(POSY);
-									os.writeInt(bloc.y+box.getAbsoluteContentY());
+									os.writeInt(bloc.y + box.getAbsoluteContentY());
 									os.flush();
 									System.out.println("Wrote to proc");
 								}
@@ -294,37 +302,36 @@ public class MainFrame extends JFrame{
 				}
 			});
 
-			browser.addMouseMotionListener(
-					new MouseMotionListener(){
+			browser.addMouseMotionListener(new MouseMotionListener() {
 
-						@Override
-						public void mouseDragged(MouseEvent arg0) {
-							
-						}
+				@Override
+				public void mouseDragged(MouseEvent arg0) {
 
-						@Override
-						public void mouseMoved(MouseEvent arg0) {
-							DefaultMutableTreeNode node = HtmlUtils.locateBox(createBoxTree(browser.getViewport()), arg0.getX(), arg0.getY());
-							if (node != null)
+				}
+
+				@Override
+				public void mouseMoved(MouseEvent arg0) {
+					DefaultMutableTreeNode node = HtmlUtils.locateBox(createBoxTree(browser.getViewport()), arg0.getX(), arg0.getY());
+					if (node != null)
+					{
+						Box box = (Box) node.getUserObject();
+						if (box.getParent() != null && box.getParent().getNode().getNodeName().equalsIgnoreCase("a"))
+						{
+							NamedNodeMap attr = box.getParent().getNode().getAttributes();
+							if (attr.getNamedItem("href") != null)
 							{
-								Box box = (Box) node.getUserObject();
-								if (box.getParent() != null && box.getParent().getNode().getNodeName().equalsIgnoreCase("a"))
-								{
-									NamedNodeMap attr = box.getParent().getNode().getAttributes();
-									if (attr.getNamedItem("href") != null)
-									{
-										browser.setCursor(new Cursor(Cursor.HAND_CURSOR));
-							        } 
-								}
-								else {
-						            browser.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-								}
+								browser.setCursor(new Cursor(Cursor.HAND_CURSOR));
 							}
 						}
-							
-				
+						else
+						{
+							browser.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+						}
+					}
+				}
+
 			});
-			
+
 			browser.addMouseListener(new MouseListener() {
 
 				@Override
@@ -411,8 +418,6 @@ public class MainFrame extends JFrame{
 		}
 	}
 
-	
-
 	/**
 	 * Create the frame.
 	 */
@@ -461,15 +466,13 @@ public class MainFrame extends JFrame{
 			btnHome.setPreferredSize(d);
 			btnHome.setMinimumSize(d);
 			btnHome.setMaximumSize(d);
-			btnHome.addMouseListener(new MouseListener(){
-
+			btnHome.addMouseListener(new MouseListener() {
 
 				@Override
-				public void mouseClicked(MouseEvent arg0)
-				{
-					if(arg0.isShiftDown())
+				public void mouseClicked(MouseEvent arg0) {
+					if (arg0.isShiftDown())
 					{
-						if(JOptionPane.showConfirmDialog(MainFrame.this, "Do you want to set " + browser.getBaseURL().toString() + " as your home page?", "Set home page", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE) == JOptionPane.YES_OPTION)
+						if (JOptionPane.showConfirmDialog(MainFrame.this, "Do you want to set " + browser.getBaseURL().toString() + " as your home page?", "Set home page", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE) == JOptionPane.YES_OPTION)
 						{
 							System.out.println("SHE SAID YES!!!");
 							PropertyManager.setProperty("home", browser.getBaseURL().toString());
@@ -481,27 +484,27 @@ public class MainFrame extends JFrame{
 				@Override
 				public void mouseEntered(MouseEvent arg0) {
 					// TODO Auto-generated method stub
-					
+
 				}
 
 				@Override
 				public void mouseExited(MouseEvent arg0) {
 					// TODO Auto-generated method stub
-					
+
 				}
 
 				@Override
 				public void mousePressed(MouseEvent arg0) {
 					// TODO Auto-generated method stub
-					
+
 				}
 
 				@Override
 				public void mouseReleased(MouseEvent arg0) {
 					// TODO Auto-generated method stub
-					
+
 				}
-				
+
 			});
 		}
 		catch (Exception e3)
