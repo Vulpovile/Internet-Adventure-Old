@@ -62,6 +62,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 
 public class MainFrame extends JFrame {
 
@@ -152,7 +153,7 @@ public class MainFrame extends JFrame {
 		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
 		for(Thread t : threadSet)
 		{
-			t.interrupt();
+			try{t.interrupt();}catch(Throwable ex){};
 		}
 		if (appletContext != null)
 			appletContext.dispose();
@@ -450,6 +451,30 @@ public class MainFrame extends JFrame {
 
 		JMenu mnBookmarks = new JMenu("Bookmarks");
 		menuBar.add(mnBookmarks);
+		
+		JMenu mnProgram = new JMenu("Program");
+		menuBar.add(mnProgram);
+		
+		JMenuItem mntmAbortAllThreads = new JMenuItem("Abort all threads");
+		mntmAbortAllThreads.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if(JOptionPane.showConfirmDialog(null,"Are you sure you want to do this?\nIt could potentially destroy your work!", "Oh No!", JOptionPane.ERROR_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+				{
+					Set<Thread> threadSet = Thread.getAllStackTraces().keySet(); //First try peacefully
+					for(Thread t : threadSet)
+					{
+						try{t.interrupt();}catch(Throwable ex){};
+						
+					}
+					threadSet = Thread.getAllStackTraces().keySet(); //Otherwise force
+					for(Thread t : threadSet)
+					{
+						try{t.stop();}catch(Throwable ex){};
+					}
+				}
+			}
+		});
+		mnProgram.add(mntmAbortAllThreads);
 		contentPane = new Panel();
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
