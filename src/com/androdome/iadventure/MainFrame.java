@@ -7,7 +7,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Panel;
 import java.awt.Point;
-import java.awt.ScrollPane;
 import java.io.DataOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -24,10 +23,13 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 
 import java.awt.Color;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
@@ -56,7 +58,6 @@ import com.androdome.iadventure.appletutils.ExtendedAppletContext;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -73,6 +74,7 @@ public class MainFrame extends JFrame {
 	public static final int SD = 4;
 	public static final int SHOW = 5;
 	public static final int HIDE = 6;
+	public static final int VPRECT = 7;
 	/**
 	 * 
 	 */
@@ -102,7 +104,7 @@ public class MainFrame extends JFrame {
 
 	JPanel panel = new JPanel();
 
-	ScrollPane scrollPane = new ScrollPane();
+	JScrollPane scrollPane = new JScrollPane();
 	private static final long serialVersionUID = 1L;
 	private Panel contentPane;
 	JTextField navBar;
@@ -156,41 +158,64 @@ public class MainFrame extends JFrame {
 		}
 		catch (InterruptedException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		for (int i = 0; i < processPBinding.size(); i++)
+		{
+			try
+			{
+				DataOutputStream os = new DataOutputStream(processPBinding.get(i).getOutputStream());
+				os.writeInt(SD);
+				os.flush();
+			}
+			catch (IOException e)
+			{
+				processPBinding.get(i).destroy();
+				e.printStackTrace();
+			}
+
+		}
+
 		Map<Thread, StackTraceElement[]> var = Thread.getAllStackTraces();
-		Set<Thread> threadSet = var.keySet(); //First try peacefully
-		for(Thread t : threadSet)
+		Set<Thread> threadSet = var.keySet(); // First try peacefully
+		for (Thread t : threadSet)
 		{
 			boolean skip = false;
 			StackTraceElement[] elem = var.get(t);
-			for(StackTraceElement s : elem)
+			for (StackTraceElement s : elem)
 			{
-				if(!s.getClassName().toLowerCase().contains("java.lang.thread") && (s.getClassName().toLowerCase().contains("com.androdome.iadventure")
-						|| s.getClassName().toLowerCase().contains("sun.java2d")
-						|| s.getClassName().toLowerCase().contains("sun.net.www.http")
-						|| s.getClassName().toLowerCase().contains("java.security")
-						|| s.getClassName().toLowerCase().contains("javax.swing")))
+				if (!s.getClassName().toLowerCase().contains("java.lang.thread") && (s.getClassName().toLowerCase().contains("com.androdome.iadventure") || s.getClassName().toLowerCase().contains("sun.java2d") || s.getClassName().toLowerCase().contains("sun.net.www.http") || s.getClassName().toLowerCase().contains("java.security") || s.getClassName().toLowerCase().contains("javax.swing")))
 				{
 					skip = true;
 					break;
 				}
 			}
-			if(!skip)
+			if (!skip)
 			{
-			try{
-				t.interrupt();
-				}catch(Throwable ex){};
-				try{
+				try
+				{
+					t.interrupt();
+				}
+				catch (Throwable ex)
+				{
+				}
+				try
+				{
 					t.stop();
-					}catch(Throwable ex){};
+				}
+				catch (Throwable ex)
+				{
+				}
 			}
-			
+
 		}
 		if (appletContext != null)
 			appletContext.dispose();
 		appletContext = null;
+		this.componentPBinding.clear();
+		this.processPBinding.clear();
+		this.nodePBinding.clear();
 		this.componentBinding.clear();
 		this.nodeBinding.clear();
 		browser.removeAll();
@@ -239,7 +264,7 @@ public class MainFrame extends JFrame {
 			// browser.createLayout(new java.awt.Dimension(30,30));
 			// scrollPane.setBorder(new EtchedBorder());
 
-			scrollPane.add(browser);
+			scrollPane.setViewportView(browser);
 
 			addWindowFocusListener(new WindowFocusListener() {
 
@@ -255,7 +280,6 @@ public class MainFrame extends JFrame {
 						}
 						catch (IOException e)
 						{
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 
@@ -275,7 +299,6 @@ public class MainFrame extends JFrame {
 						}
 						catch (IOException e)
 						{
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 
@@ -286,6 +309,10 @@ public class MainFrame extends JFrame {
 
 			addComponentListener(new ComponentAdapter() {
 				InvokeLaterThread invokeLater;
+
+				public void componentMoved(ComponentEvent ev) {
+					appletCompChange();
+				}
 
 				public void componentResized(ComponentEvent componentEvent) {
 					if (invokeLater != null)
@@ -306,35 +333,7 @@ public class MainFrame extends JFrame {
 								componentBinding.get(i).validate();
 
 							}
-							for (int i = 0; i < processPBinding.size(); i++)
-							{
-								Box box = browser.getViewport().getElementBoxByNode(nodePBinding.get(i));
-								componentPBinding.get(i).setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
-								componentPBinding.get(i).setSize(box.getMinimalWidth(), box.getHeight());
-								componentPBinding.get(i).validate();
-								Point bloc = componentPBinding.get(i).getLocationOnScreen();
-								try
-								{
-									DataOutputStream os = new DataOutputStream(processPBinding.get(i).getOutputStream());
-									os.writeInt(RESX);
-									os.writeInt(box.getMinimalWidth());
-									os.writeInt(RESY);
-									os.writeInt(box.getHeight());
-									os.writeInt(POSX);
-									os.writeInt(bloc.x + box.getAbsoluteContentX());
-									os.writeInt(box.getHeight());
-									os.writeInt(POSY);
-									os.writeInt(bloc.y + box.getAbsoluteContentY());
-									os.flush();
-									System.out.println("Wrote to proc");
-								}
-								catch (IOException e)
-								{
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-
-							}
+							appletCompChange();
 						}
 					};
 					invokeLater.start();
@@ -431,10 +430,45 @@ public class MainFrame extends JFrame {
 			}
 			catch (IOException e)
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			System.exit(-1);
+		}
+	}
+
+	protected void appletCompChange() {
+		for (int i = 0; i < processPBinding.size(); i++)
+		{
+			Box box = browser.getViewport().getElementBoxByNode(nodePBinding.get(i));
+			componentPBinding.get(i).setLocation(box.getAbsoluteContentX(), box.getAbsoluteContentY());
+			componentPBinding.get(i).setSize(box.getMinimalWidth(), box.getHeight());
+			componentPBinding.get(i).validate();
+			Point bloc = componentPBinding.get(i).getLocationOnScreen();
+		
+			try
+			{
+				DataOutputStream os = new DataOutputStream(processPBinding.get(i).getOutputStream());
+				os.writeInt(RESX);
+				os.writeInt(box.getMinimalWidth());
+				os.writeInt(RESY);
+				os.writeInt(box.getHeight());
+				os.writeInt(POSX);
+				os.writeInt(bloc.x);
+				os.writeInt(box.getHeight());
+				os.writeInt(POSY);
+				os.writeInt(bloc.y);
+				os.writeInt(VPRECT);
+				os.writeInt(this.scrollPane.getLocationOnScreen().x);
+				os.writeInt(this.scrollPane.getLocationOnScreen().y);
+				os.writeInt((scrollPane.getWidth()-scrollPane.getVerticalScrollBar().getWidth()) + this.scrollPane.getLocationOnScreen().x);
+				os.writeInt((scrollPane.getHeight()-scrollPane.getHorizontalScrollBar().getHeight()) + this.scrollPane.getLocationOnScreen().y);
+				os.flush();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+
 		}
 	}
 
@@ -469,7 +503,6 @@ public class MainFrame extends JFrame {
 		}
 		catch (IOException e1)
 		{
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		setTitle("Internet Adventure");
@@ -484,44 +517,51 @@ public class MainFrame extends JFrame {
 
 		JMenu mnBookmarks = new JMenu("Bookmarks");
 		menuBar.add(mnBookmarks);
-		
+
 		JMenu mnProgram = new JMenu("Program");
 		menuBar.add(mnProgram);
-		
+
 		JMenuItem mntmAbortAllThreads = new JMenuItem("Abort all threads");
 		mntmAbortAllThreads.addActionListener(new ActionListener() {
 			@SuppressWarnings("deprecation")
 			public void actionPerformed(ActionEvent arg0) {
-				if(JOptionPane.showConfirmDialog(null,"Are you sure you want to do this?\nIt could potentially destroy your work!", "Oh No!", JOptionPane.ERROR_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+				if (JOptionPane.showConfirmDialog(null, "Are you sure you want to do this?\nIt could potentially destroy your work!", "Oh No!", JOptionPane.ERROR_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 				{
 					Map<Thread, StackTraceElement[]> var = Thread.getAllStackTraces();
-					Set<Thread> threadSet = var.keySet(); //First try peacefully
-					for(Thread t : threadSet)
+					Set<Thread> threadSet = var.keySet(); // First try
+															// peacefully
+					for (Thread t : threadSet)
 					{
 						boolean skip = false;
 						StackTraceElement[] elem = var.get(t);
-						for(StackTraceElement s : elem)
+						for (StackTraceElement s : elem)
 						{
-							if(!s.getClassName().toLowerCase().contains("java.lang.thread") && (s.getClassName().toLowerCase().contains("com.androdome.iadventure")
-									|| s.getClassName().toLowerCase().contains("sun.java2d")
-									|| s.getClassName().toLowerCase().contains("sun.net.www.http")
-									|| s.getClassName().toLowerCase().contains("java.security")
-									|| s.getClassName().toLowerCase().contains("javax.swing")))
+							if (!s.getClassName().toLowerCase().contains("java.lang.thread") && (s.getClassName().toLowerCase().contains("com.androdome.iadventure") || s.getClassName().toLowerCase().contains("sun.java2d") || s.getClassName().toLowerCase().contains("sun.net.www.http") || s.getClassName().toLowerCase().contains("java.security") || s.getClassName().toLowerCase().contains("javax.swing")))
 							{
 								skip = true;
 								break;
 							}
 						}
-						if(!skip)
+						if (!skip)
 						{
-						try{
-							t.interrupt();
-							}catch(Throwable ex){};
-							try{
+							try
+							{
+								t.interrupt();
+							}
+							catch (Throwable ex)
+							{
+							}
+							;
+							try
+							{
 								t.stop();
-								}catch(Throwable ex){};
+							}
+							catch (Throwable ex)
+							{
+							}
+							;
 						}
-						
+
 					}
 				}
 			}
@@ -536,7 +576,7 @@ public class MainFrame extends JFrame {
 		panel_1.setLayout(new BorderLayout(0, 0));
 
 		JToolBar toolBar = new JToolBar();
-		
+
 		panel_1.add(toolBar, BorderLayout.CENTER);
 
 		JButton btnHome;
@@ -564,10 +604,18 @@ public class MainFrame extends JFrame {
 					}
 					else conHandler.navigate(MainFrame.this, "about:home");
 				}
-				public void mouseEntered(MouseEvent arg0) {}
-				public void mouseExited(MouseEvent arg0) {}
-				public void mousePressed(MouseEvent arg0) {}
-				public void mouseReleased(MouseEvent arg0) {}
+
+				public void mouseEntered(MouseEvent arg0) {
+				}
+
+				public void mouseExited(MouseEvent arg0) {
+				}
+
+				public void mousePressed(MouseEvent arg0) {
+				}
+
+				public void mouseReleased(MouseEvent arg0) {
+				}
 
 			});
 		}
@@ -578,15 +626,16 @@ public class MainFrame extends JFrame {
 		}
 
 		toolBar.add(btnHome);
-		
+
 		JButton btnBackwards;
-		try{
-		btnBackwards = new ImageButton("/btn/backwards");
-		Dimension d = new Dimension(32, 32);
-		btnBackwards.setSize(d);
-		btnBackwards.setPreferredSize(d);
-		btnBackwards.setMinimumSize(d);
-		btnBackwards.setMaximumSize(d);
+		try
+		{
+			btnBackwards = new ImageButton("/btn/backwards");
+			Dimension d = new Dimension(32, 32);
+			btnBackwards.setSize(d);
+			btnBackwards.setPreferredSize(d);
+			btnBackwards.setMinimumSize(d);
+			btnBackwards.setMaximumSize(d);
 		}
 		catch (Exception e3)
 		{
@@ -594,16 +643,16 @@ public class MainFrame extends JFrame {
 			e3.printStackTrace();
 		}
 		toolBar.add(btnBackwards);
-		
-		
+
 		JButton btnRefresh;
-		try{
+		try
+		{
 			btnRefresh = new ImageButton("/btn/refresh");
-		Dimension d = new Dimension(32, 32);
-		btnRefresh.setSize(d);
-		btnRefresh.setPreferredSize(d);
-		btnRefresh.setMinimumSize(d);
-		btnRefresh.setMaximumSize(d);
+			Dimension d = new Dimension(32, 32);
+			btnRefresh.setSize(d);
+			btnRefresh.setPreferredSize(d);
+			btnRefresh.setMinimumSize(d);
+			btnRefresh.setMaximumSize(d);
 		}
 		catch (Exception e3)
 		{
@@ -611,15 +660,16 @@ public class MainFrame extends JFrame {
 			e3.printStackTrace();
 		}
 		toolBar.add(btnRefresh);
-		
+
 		JButton btnForwards;
-		try{
+		try
+		{
 			btnForwards = new ImageButton("/btn/forward");
-		Dimension d = new Dimension(32, 32);
-		btnForwards.setSize(d);
-		btnForwards.setPreferredSize(d);
-		btnForwards.setMinimumSize(d);
-		btnForwards.setMaximumSize(d);
+			Dimension d = new Dimension(32, 32);
+			btnForwards.setSize(d);
+			btnForwards.setPreferredSize(d);
+			btnForwards.setMinimumSize(d);
+			btnForwards.setMaximumSize(d);
 		}
 		catch (Exception e3)
 		{
@@ -627,7 +677,7 @@ public class MainFrame extends JFrame {
 			e3.printStackTrace();
 		}
 		toolBar.add(btnForwards);
-		
+
 		JToolBar toolBar_1 = new JToolBar();
 		toolBar_1.setBorder(new EmptyBorder(2, 2, 2, 2));
 		panel_1.add(toolBar_1, BorderLayout.SOUTH);
@@ -666,6 +716,16 @@ public class MainFrame extends JFrame {
 
 		});
 
+		AdjustmentListener listener = new AdjustmentListener() {
+
+			@Override
+			public void adjustmentValueChanged(AdjustmentEvent arg0) {
+				appletCompChange();
+			}
+
+		};
+		scrollPane.getVerticalScrollBar().addAdjustmentListener(listener);
+		scrollPane.getHorizontalScrollBar().addAdjustmentListener(listener);
 		contentPane.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel panel_2 = new JPanel();

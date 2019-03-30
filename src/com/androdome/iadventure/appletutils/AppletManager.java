@@ -249,7 +249,7 @@ public class AppletManager {
 				}
 				name = pName;
 			}
-			if(params.get("separate_jvm") == null || params.get("separate_jvm").trim().equals("false"))
+			if(false)//params.get("separate_jvm") == null || params.get("separate_jvm").trim().equals("false"))
 			{
 
 				System.out.println("Got inner jvm");
@@ -305,11 +305,13 @@ class PreventCrashThread extends Thread
 		while(true)
 		{
 			try {
-				if(stream.read() == -1)
+				int read = stream.read();
+				if(read == -1)
 				{
 					System.out.println("Process Exited");
 					break;
 				}
+				else System.out.write(read);
 			} catch (IOException e) {
 				e.printStackTrace();
 				break;
