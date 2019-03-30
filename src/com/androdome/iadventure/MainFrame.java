@@ -150,6 +150,15 @@ public class MainFrame extends JFrame {
 					}
 				}
 		}
+		try
+		{
+			Thread.sleep(1000L);
+		}
+		catch (InterruptedException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		Map<Thread, StackTraceElement[]> var = Thread.getAllStackTraces();
 		Set<Thread> threadSet = var.keySet(); //First try peacefully
 		for(Thread t : threadSet)
@@ -159,11 +168,10 @@ public class MainFrame extends JFrame {
 			for(StackTraceElement s : elem)
 			{
 				if(!s.getClassName().toLowerCase().contains("java.lang.thread") && (s.getClassName().toLowerCase().contains("com.androdome.iadventure")
-						|| s.getClassName().toLowerCase().contains("java.lang")
 						|| s.getClassName().toLowerCase().contains("sun.java2d")
 						|| s.getClassName().toLowerCase().contains("sun.net.www.http")
 						|| s.getClassName().toLowerCase().contains("java.security")
-						|| s.getClassName().toLowerCase().contains("java.awt")))
+						|| s.getClassName().toLowerCase().contains("javax.swing")))
 				{
 					skip = true;
 					break;
@@ -173,8 +181,10 @@ public class MainFrame extends JFrame {
 			{
 			try{
 				t.interrupt();
-				t.stop();
 				}catch(Throwable ex){};
+				try{
+					t.stop();
+					}catch(Throwable ex){};
 			}
 			
 		}
@@ -484,16 +494,34 @@ public class MainFrame extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				if(JOptionPane.showConfirmDialog(null,"Are you sure you want to do this?\nIt could potentially destroy your work!", "Oh No!", JOptionPane.ERROR_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 				{
-					Set<Thread> threadSet = Thread.getAllStackTraces().keySet(); //First try peacefully
+					Map<Thread, StackTraceElement[]> var = Thread.getAllStackTraces();
+					Set<Thread> threadSet = var.keySet(); //First try peacefully
 					for(Thread t : threadSet)
 					{
-						try{t.interrupt();}catch(Throwable ex){};
+						boolean skip = false;
+						StackTraceElement[] elem = var.get(t);
+						for(StackTraceElement s : elem)
+						{
+							if(!s.getClassName().toLowerCase().contains("java.lang.thread") && (s.getClassName().toLowerCase().contains("com.androdome.iadventure")
+									|| s.getClassName().toLowerCase().contains("sun.java2d")
+									|| s.getClassName().toLowerCase().contains("sun.net.www.http")
+									|| s.getClassName().toLowerCase().contains("java.security")
+									|| s.getClassName().toLowerCase().contains("javax.swing")))
+							{
+								skip = true;
+								break;
+							}
+						}
+						if(!skip)
+						{
+						try{
+							t.interrupt();
+							}catch(Throwable ex){};
+							try{
+								t.stop();
+								}catch(Throwable ex){};
+						}
 						
-					}
-					threadSet = Thread.getAllStackTraces().keySet(); //Otherwise force
-					for(Thread t : threadSet)
-					{
-						try{t.stop();}catch(Throwable ex){};
 					}
 				}
 			}
