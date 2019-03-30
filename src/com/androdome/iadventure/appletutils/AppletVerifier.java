@@ -1,28 +1,19 @@
 package com.androdome.iadventure.appletutils;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
-import java.security.cert.PKIXParameters;
-import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -76,8 +67,8 @@ public class AppletVerifier {
 
 						// Read in each jar entry. A security exception will
 						// be thrown if a signature/digest check fails.
-						int n;
-						while ((n = is.read(buffer, 0, buffer.length)) != -1)
+						//int n;
+						while (is.read(buffer, 0, buffer.length) != -1)
 						{
 							// Don't care
 						}

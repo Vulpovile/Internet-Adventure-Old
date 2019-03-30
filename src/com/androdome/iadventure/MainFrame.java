@@ -17,6 +17,7 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
@@ -34,7 +35,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
-import java.awt.event.WindowListener;
 
 import javax.swing.JToolBar;
 import javax.swing.JButton;
@@ -129,6 +129,7 @@ public class MainFrame extends JFrame {
 		frame.init();
 	}
 
+	@SuppressWarnings("deprecation")
 	void clearComp() {
 		Thread.currentThread().setContextClassLoader(null);
 		Component[] comps = browser.getComponents();
@@ -140,7 +141,6 @@ public class MainFrame extends JFrame {
 				{
 					if (a instanceof Applet)
 					{
-						System.out.println("Destroyed applet");
 						Applet app = (Applet) a;
 						app.stop();
 						app.destroy();
@@ -150,10 +150,33 @@ public class MainFrame extends JFrame {
 					}
 				}
 		}
-		Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+		Map<Thread, StackTraceElement[]> var = Thread.getAllStackTraces();
+		Set<Thread> threadSet = var.keySet(); //First try peacefully
 		for(Thread t : threadSet)
 		{
-			try{t.interrupt();}catch(Throwable ex){};
+			boolean skip = false;
+			StackTraceElement[] elem = var.get(t);
+			for(StackTraceElement s : elem)
+			{
+				if(!s.getClassName().toLowerCase().contains("java.lang.thread") && (s.getClassName().toLowerCase().contains("com.androdome.iadventure")
+						|| s.getClassName().toLowerCase().contains("java.lang")
+						|| s.getClassName().toLowerCase().contains("sun.java2d")
+						|| s.getClassName().toLowerCase().contains("sun.net.www.http")
+						|| s.getClassName().toLowerCase().contains("java.security")
+						|| s.getClassName().toLowerCase().contains("java.awt")))
+				{
+					skip = true;
+					break;
+				}
+			}
+			if(!skip)
+			{
+			try{
+				t.interrupt();
+				t.stop();
+				}catch(Throwable ex){};
+			}
+			
 		}
 		if (appletContext != null)
 			appletContext.dispose();
@@ -457,6 +480,7 @@ public class MainFrame extends JFrame {
 		
 		JMenuItem mntmAbortAllThreads = new JMenuItem("Abort all threads");
 		mntmAbortAllThreads.addActionListener(new ActionListener() {
+			@SuppressWarnings("deprecation")
 			public void actionPerformed(ActionEvent arg0) {
 				if(JOptionPane.showConfirmDialog(null,"Are you sure you want to do this?\nIt could potentially destroy your work!", "Oh No!", JOptionPane.ERROR_MESSAGE, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 				{
@@ -484,6 +508,7 @@ public class MainFrame extends JFrame {
 		panel_1.setLayout(new BorderLayout(0, 0));
 
 		JToolBar toolBar = new JToolBar();
+		
 		panel_1.add(toolBar, BorderLayout.CENTER);
 
 		JButton btnHome;

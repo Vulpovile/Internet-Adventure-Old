@@ -2,29 +2,17 @@ package com.androdome.iadventure.appletutils;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Image;
-
 import javax.imageio.ImageIO;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
-
-import java.awt.Color;
-
 import javax.swing.JLabel;
 
-import java.awt.Font;
-
 import javax.swing.JCheckBox;
-import javax.swing.SwingConstants;
-
 import com.androdome.iadventure.appletutils.AppletVerifier.Signage;
 import com.androdome.iadventure.dialogutils.InformationFrame;
 
@@ -41,8 +29,6 @@ import java.util.ArrayList;
 
 import javax.swing.JScrollPane;
 import javax.swing.BoxLayout;
-
-import java.awt.Component;
 
 import javax.swing.Box;
 

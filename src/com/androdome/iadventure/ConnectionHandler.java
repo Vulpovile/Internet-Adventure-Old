@@ -106,11 +106,12 @@ public class ConnectionHandler
 		frame.lblProg.setText("Transferring from " + url[0].toString() + "...");
 		while ((in.read(buffer)) > 0)
 		{
-			System.out.print("no");
+			
 			frame.progressBar.setValue(frame.progressBar.getValue()+1024);
 			frame.progressBar.repaint();
 			frame.progressBar.revalidate();
 			bytearr.write(buffer);
+			buffer = new byte[1024];
 		}
 		in.close();
 		frame.progressBar.setValue(frame.progressBar.getMaximum());
