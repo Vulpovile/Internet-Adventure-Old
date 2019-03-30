@@ -1,6 +1,8 @@
 package com.androdome.iadventure;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -78,18 +80,21 @@ public class ImageButton extends JButton implements MouseListener {
 
 	@Override
 	public void paintComponent(Graphics g) {
-		g.setColor(this.getParent().getBackground());
-		g.fillRect(0, 0, this.getWidth(), this.getHeight());
+		Graphics2D g2d = (Graphics2D)g;
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+		g2d.setColor(this.getParent().getBackground());
+		g2d.fillRect(0, 0, this.getWidth(), this.getHeight());
 		if(this.isEnabled())
 		{
 			if(currImg != null)
-				g.drawImage(currImg, 0, 0, this.getWidth(), this.getHeight(), this);
+				g2d.drawImage(currImg, 0, 0, this.getWidth(), this.getHeight(), this);
 			else super.paintComponent(g);
 		}
 		else
 		{
 			if(imgDs != null)
-				g.drawImage(imgDs, 0, 0, this.getWidth(), this.getHeight(), this);
+				g2d.drawImage(imgDs, 0, 0, this.getWidth(), this.getHeight(), this);
 			else super.paintComponent(g);
 		}
 	}

@@ -564,30 +564,10 @@ public class MainFrame extends JFrame {
 					}
 					else conHandler.navigate(MainFrame.this, "about:home");
 				}
-
-				@Override
-				public void mouseEntered(MouseEvent arg0) {
-					// TODO Auto-generated method stub
-
-				}
-
-				@Override
-				public void mouseExited(MouseEvent arg0) {
-					// TODO Auto-generated method stub
-
-				}
-
-				@Override
-				public void mousePressed(MouseEvent arg0) {
-					// TODO Auto-generated method stub
-
-				}
-
-				@Override
-				public void mouseReleased(MouseEvent arg0) {
-					// TODO Auto-generated method stub
-
-				}
+				public void mouseEntered(MouseEvent arg0) {}
+				public void mouseExited(MouseEvent arg0) {}
+				public void mousePressed(MouseEvent arg0) {}
+				public void mouseReleased(MouseEvent arg0) {}
 
 			});
 		}
@@ -598,7 +578,56 @@ public class MainFrame extends JFrame {
 		}
 
 		toolBar.add(btnHome);
-
+		
+		JButton btnBackwards;
+		try{
+		btnBackwards = new ImageButton("/btn/backwards");
+		Dimension d = new Dimension(32, 32);
+		btnBackwards.setSize(d);
+		btnBackwards.setPreferredSize(d);
+		btnBackwards.setMinimumSize(d);
+		btnBackwards.setMaximumSize(d);
+		}
+		catch (Exception e3)
+		{
+			btnBackwards = new JButton("Backwards");
+			e3.printStackTrace();
+		}
+		toolBar.add(btnBackwards);
+		
+		
+		JButton btnRefresh;
+		try{
+			btnRefresh = new ImageButton("/btn/refresh");
+		Dimension d = new Dimension(32, 32);
+		btnRefresh.setSize(d);
+		btnRefresh.setPreferredSize(d);
+		btnRefresh.setMinimumSize(d);
+		btnRefresh.setMaximumSize(d);
+		}
+		catch (Exception e3)
+		{
+			btnRefresh = new JButton("Refresh");
+			e3.printStackTrace();
+		}
+		toolBar.add(btnRefresh);
+		
+		JButton btnForwards;
+		try{
+			btnForwards = new ImageButton("/btn/forward");
+		Dimension d = new Dimension(32, 32);
+		btnForwards.setSize(d);
+		btnForwards.setPreferredSize(d);
+		btnForwards.setMinimumSize(d);
+		btnForwards.setMaximumSize(d);
+		}
+		catch (Exception e3)
+		{
+			btnForwards = new JButton("Forwards");
+			e3.printStackTrace();
+		}
+		toolBar.add(btnForwards);
+		
 		JToolBar toolBar_1 = new JToolBar();
 		toolBar_1.setBorder(new EmptyBorder(2, 2, 2, 2));
 		panel_1.add(toolBar_1, BorderLayout.SOUTH);
