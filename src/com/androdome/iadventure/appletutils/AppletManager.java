@@ -249,7 +249,7 @@ public class AppletManager {
 				}
 				name = pName;
 			}
-			if(false)//params.get("separate_jvm") == null || params.get("separate_jvm").trim().equals("false"))
+			if(params.get("separate_jvm") == null || params.get("separate_jvm").trim().equals("false"))
 			{
 
 				System.out.println("Got inner jvm");
