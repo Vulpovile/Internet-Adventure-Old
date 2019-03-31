@@ -177,7 +177,7 @@ public class MainFrame extends JFrame {
 
 		}
 
-		Map<Thread, StackTraceElement[]> var = Thread.getAllStackTraces();
+		/*Map<Thread, StackTraceElement[]> var = Thread.getAllStackTraces();
 		Set<Thread> threadSet = var.keySet(); // First try peacefully
 		for (Thread t : threadSet)
 		{
@@ -209,7 +209,7 @@ public class MainFrame extends JFrame {
 				}
 			}
 
-		}
+		}*/
 		if (appletContext != null)
 			appletContext.dispose();
 		appletContext = null;
