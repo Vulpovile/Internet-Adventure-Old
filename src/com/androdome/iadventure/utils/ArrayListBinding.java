@@ -59,4 +59,20 @@ public class ArrayListBinding<K, V> implements Binding<K, V> {
 		return true;
 	}
 
+	@Override
+	public K getFirstKeyFromValue(V value) {
+		int idx = values.indexOf(value);
+		if(idx == -1)
+			return null;
+		else return keys.get(idx);
+	}
+
+	@Override
+	public V getFirstValueFromKey(K key) {
+		int idx = keys.indexOf(key);
+		if(idx == -1)
+			return null;
+		else return values.get(idx);
+	}
+
 }

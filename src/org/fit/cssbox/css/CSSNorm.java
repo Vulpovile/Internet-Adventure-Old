@@ -104,8 +104,8 @@ public class CSSNorm
         "abbr, acronym   { font-variant: small-caps; letter-spacing: 0.1em }"+
         ":link, :visited { text-decoration: underline }"+
         ":focus          { outline: thin dotted invert }"+
-        "input			 {display:block; border 1px solid black; width:20px; height:20px;}"+
-        "textarea		 {display:block; border 1px solid black; width:20px; height:20px;}"+
+        "input			 {display:block; height:20px;}"+
+        "textarea		 {display:block}"+
 
         "BDO[DIR=\"ltr\"]  { direction: ltr; unicode-bidi: bidi-override }"+
         "BDO[DIR=\"rtl\"]  { direction: rtl; unicode-bidi: bidi-override }"+

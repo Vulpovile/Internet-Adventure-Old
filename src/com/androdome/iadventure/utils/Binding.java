@@ -9,5 +9,7 @@ public interface Binding<K, V> {
 	public List<V> getValueList();
 	public BindingObject<K, V> getBindingObject(int i);
 	public boolean removeBinding(K key, V value);
+	public K getFirstKeyFromValue(V value);
+	public V getFirstValueFromKey(K key);
 	public boolean removeBinding(int i);
 }

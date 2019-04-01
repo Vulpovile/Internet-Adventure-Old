@@ -25,6 +25,7 @@ import org.fit.cssbox.demo.DOMSource;
 import org.w3c.dom.Document;
 
 import com.androdome.iadventure.appletutils.AppletManager;
+import com.androdome.iadventure.componentutils.ComponentManager;
 
 public class ConnectionHandler
 {
@@ -201,7 +202,7 @@ public class ConnectionHandler
 					}
 					
 					AppletManager.parseApplets(frame.browser, frame);
-					// frame.parseComponents(frame.browser);
+					ComponentManager.parseComponents(frame, frame.browser);
 					frame.browser.redrawBoxes();
 					frame.browser.repaint();
 					frame.browser.revalidate();

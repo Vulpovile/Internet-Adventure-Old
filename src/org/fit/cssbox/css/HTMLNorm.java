@@ -222,6 +222,17 @@ public class HTMLNorm
             			attrs = attrs + "height:"+height+"px;";
             	}
             }
+            
+            //Input
+            
+            if (el.getTagName().equals("input"))
+                {
+                	if (el.getAttributes().getNamedItem("size") != null)
+                	{
+                		String width = el.getAttribute("size");
+            			attrs = attrs + "width:"+width+"px;";
+                	}
+                }
             //div align
             if(el.getTagName().equals("div"))
             {

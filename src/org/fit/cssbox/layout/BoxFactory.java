@@ -229,7 +229,12 @@ public class BoxFactory
             istext = true;
         }
         else
+        {
+
+        	System.out.println(n.toString());
             newbox = createElementBox((Element) n, stat);
+
+        }
         
         //Create the child subtree
         if (!istext) 

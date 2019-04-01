@@ -123,6 +123,39 @@ public class Viewport extends BlockBox
         return boxes;
     }
     
+    
+    public ArrayList<InlineBox> getInlineBoxesByName(String name, boolean case_sensitive)
+    {
+    	ArrayList<InlineBox> boxes = new ArrayList<InlineBox>();
+        if (rootBox == null)
+            return null;
+        else
+        	recursiveFindInlineBoxesByName((InlineBox)rootBox, name, case_sensitive, boxes);
+        return boxes;
+    }
+    
+    private void recursiveFindInlineBoxesByName(InlineBox ebox, String name, boolean case_sensitive, ArrayList<InlineBox> boxes) {
+		boolean eq;
+        if (case_sensitive)
+            eq = ebox.getElement().getTagName().equals(name);
+        else
+            eq = ebox.getElement().getTagName().equalsIgnoreCase(name);
+        
+        if (eq)
+            boxes.add(ebox);
+        else
+        {
+        	InlineBox ret = null;
+            for (int i = 0; i < ebox.getSubBoxNumber() && ret == null; i++)
+            {
+                Box child = ebox.getSubBox(i);
+                if (child instanceof InlineBox)
+                	recursiveFindInlineBoxesByName((InlineBox) child, name, case_sensitive, boxes);
+            }
+        }
+        
+	}
+    
 	private void recursiveFindElementsBoxByName(ElementBox ebox, String name, boolean case_sensitive, ArrayList<ElementBox> boxes) {
 		boolean eq;
         if (case_sensitive)
