@@ -93,7 +93,7 @@ public class MainFrame extends JFrame {
 	}
 
 	public static double JAVA_VERSION = getVersion();
-	ConnectionHandler conHandler = new ConnectionHandler();
+	public ConnectionHandler conHandler = new ConnectionHandler();
 
 	static double getVersion() {
 		String version = System.getProperty("java.version");
@@ -334,6 +334,8 @@ public class MainFrame extends JFrame {
 
 							}
 							appletCompChange();
+							browser.repaint();
+							browser.redrawBoxes();
 						}
 					};
 					invokeLater.start();

@@ -16,7 +16,7 @@ import com.androdome.iadventure.MainFrame;
 
 public class ComponentManager {
 
-	public static void parseComponents(MainFrame frame, BrowserCanvas browser) {
+	public static void parseComponents(BrowserCanvas browser, MainFrame frame) {
 		List<InlineBox> forms = browser.getViewport().getInlineBoxesByName("form", false);
 		System.out.println(forms.size());
 		for (InlineBox element : forms)
@@ -30,7 +30,7 @@ public class ComponentManager {
 				enctype = element.getNode().getAttributes().getNamedItem("enctype").getNodeValue();
 			if(element.getNode().getAttributes().getNamedItem("method") != null)
 				method = element.getNode().getAttributes().getNamedItem("method").getNodeValue();
-			FormItem form = new FormItem(action, method, enctype);
+			FormItem form = new FormItem(action, method, enctype, frame);
 			Stack<Node> mustSearch = new Stack<Node>();
 			mustSearch.push(element.getNode());
 			Stack<Node> foundInput = new Stack<Node>();
@@ -59,7 +59,7 @@ public class ComponentManager {
 						frame.addComponentNodeBinding(new JTextField(), box.getNode());
 						form.add(textField, n);
 					}
-					if(type.equalsIgnoreCase("button"))
+					else if(type.equalsIgnoreCase("button"))
 					{
 						String text = "Generic Input Button";
 						if(box.getNode().getAttributes().getNamedItem("value") != null)
@@ -70,7 +70,7 @@ public class ComponentManager {
 						frame.addComponentNodeBinding(new JTextField(), box.getNode());
 						form.add(textField, n);
 					}
-					if(type.equalsIgnoreCase("submit"))
+					else if(type.equalsIgnoreCase("submit"))
 					{
 						String text = "Generic Submit Button";
 						if(box.getNode().getAttributes().getNamedItem("value") != null)
@@ -80,6 +80,10 @@ public class ComponentManager {
 						browser.add(textField);
 						frame.addComponentNodeBinding(new JTextField(), box.getNode());
 						form.add(textField, n);
+					}
+					else
+					{
+						form.add(null, n);
 					}
 				}
 				else

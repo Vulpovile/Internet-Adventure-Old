@@ -202,7 +202,7 @@ public class ConnectionHandler
 					}
 					
 					AppletManager.parseApplets(frame.browser, frame);
-					ComponentManager.parseComponents(frame, frame.browser);
+					ComponentManager.parseComponents(frame.browser, frame);
 					frame.browser.redrawBoxes();
 					frame.browser.repaint();
 					frame.browser.revalidate();
@@ -356,6 +356,25 @@ public class ConnectionHandler
 						+ "Java stack trace:"
 						+ "<br />&nbsp;<br />&nbsp;<br />"
 						+ HtmlUtils.stringToHTMLString(sStackTrace));
+	}
+
+	public void onFormGet(String action, String enctype, MainFrame frame, String subParams) {
+		try
+		{
+			String getURL = frame.browser.getBaseURL().toURI().resolve(action).toString()+"?"+subParams;
+			navigate(frame, getURL);
+		}
+		catch (URISyntaxException e)
+		{
+			handleExcec(frame, action ,e);
+			e.printStackTrace();
+		}
+		
+	}
+
+	public void onFormPost(String action, String enctype, MainFrame frame, String subParams) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
