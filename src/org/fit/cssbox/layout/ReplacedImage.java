@@ -58,7 +58,7 @@ public class ReplacedImage extends ReplacedContent implements ImageObserver {
 				{
 					String src = getOwner().getElement().getAttribute("src");
 					System.out.println(base);
-					url = new URL(base, "adusduh98**&&*78d][][}{}{}{}[]"+src);
+					url = new URL(base, src);
 					if (LOAD_IMAGES)
 					{
 						System.err.println("Loading image: " + url);
