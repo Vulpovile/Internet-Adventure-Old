@@ -55,9 +55,11 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.androdome.iadventure.appletutils.ExtendedAppletContext;
+import com.androdome.iadventure.plugin.PluginManager;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -110,7 +112,7 @@ public class MainFrame extends JFrame {
 	JTextField navBar;
 	JLabel lblProg = new JLabel("Done.");
 	BrowserCanvas browser = null;
-
+	PluginManager manager = new PluginManager(this);
 	/**
 	 * Launch the application.
 	 * 
@@ -129,9 +131,10 @@ public class MainFrame extends JFrame {
 		final MainFrame frame = new MainFrame();
 		frame.setVisible(true);
 		frame.init();
+		
 	}
 
-	@SuppressWarnings("deprecation")
+	//@SuppressWarnings("deprecation")
 	void clearComp() {
 		Thread.currentThread().setContextClassLoader(null);
 		Component[] comps = browser.getComponents();
@@ -498,7 +501,7 @@ public class MainFrame extends JFrame {
 	 * Create the frame.
 	 */
 	public MainFrame() {
-
+		manager.loadPlugins();
 		try
 		{
 			setIconImage(ImageIO.read(this.getClass().getResourceAsStream("/icon32.png")));

@@ -9,7 +9,7 @@ import java.util.Properties;
 
 public class PropertyManager {
 	private static Properties props = new Properties();
-	private static File propFile = new File("browser.properties");
+	private static File propFile = new File("./conf/browser.properties");
 	static
 	{
 		if(!propFile.exists())

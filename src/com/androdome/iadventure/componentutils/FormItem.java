@@ -3,18 +3,15 @@ package com.androdome.iadventure.componentutils;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 import javax.swing.JButton;
 import javax.swing.JTextField;
 
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 
 import com.androdome.iadventure.MainFrame;
 import com.androdome.iadventure.utils.ArrayListBinding;
-import com.androdome.iadventure.utils.Binding;
 import com.androdome.iadventure.utils.BindingObject;
 
 public class FormItem implements ActionListener{

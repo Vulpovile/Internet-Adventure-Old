@@ -2,6 +2,7 @@ package com.androdome.iadventure.appletutils;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+
 import javax.imageio.ImageIO;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -11,8 +12,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
-
 import javax.swing.JCheckBox;
+
 import com.androdome.iadventure.appletutils.AppletVerifier.Signage;
 import com.androdome.iadventure.dialogutils.InformationFrame;
 
@@ -29,7 +30,6 @@ import java.util.ArrayList;
 
 import javax.swing.JScrollPane;
 import javax.swing.BoxLayout;
-
 import javax.swing.Box;
 
 public class AppletAcceptDialog extends InformationFrame {
@@ -55,7 +55,7 @@ public class AppletAcceptDialog extends InformationFrame {
 	 * @param name
 	 */
 
-	static File trustedSites = new File("TrustedSites.txt");
+	static File trustedSites = new File("./conf/TrustedSites.txt");
 	static ArrayList<String> trusted = new ArrayList<String>();
 
 	static
@@ -91,6 +91,8 @@ public class AppletAcceptDialog extends InformationFrame {
 	}
 
 	public boolean isSiteTrusted(String codebase) {
+		if(codebase == null)
+			return false;
 		return trusted.contains(codebase.toLowerCase());
 		// return true;
 	}
@@ -117,47 +119,49 @@ public class AppletAcceptDialog extends InformationFrame {
 	CertData signage = null;
 
 	public AppletAcceptDialog(String name, URL[] archives, String className, final String codeBase) {
-		
+
 		super("Warning - Security", "An applet wants to run", null);
-		this.setPreferredSize(new Dimension(580, 360));
-		setResizable(false);
-		getContentPane().setBorder(new EmptyBorder(5, 5, 0, 5));
-		try
+		if (!isSiteTrusted(codeBase))
 		{
-			if (archives != null)
+			this.setPreferredSize(new Dimension(580, 360));
+			setResizable(false);
+			getContentPane().setBorder(new EmptyBorder(5, 5, 0, 5));
+			try
 			{
-				for (int i = 0; i < archives.length; i++)
+
+				if (archives != null)
 				{
-					CertData newSignage = AppletVerifier.verifySignage(archives[0]);
-					if (signage == null || newSignage.signage.compareTo(signage.signage) < 0)
-						signage = newSignage;
+					for (int i = 0; i < archives.length; i++)
+					{
+						CertData newSignage = AppletVerifier.verifySignage(archives[0]);
+						if (signage == null || newSignage.signage.compareTo(signage.signage) < 0)
+							signage = newSignage;
+					}
+					signage = AppletVerifier.verifySignage(archives[0]);
+					System.out.println(signage.signage);
+					if (signage.signage == Signage.UNSIGNED)
+						setIcon(ImageIO.read(this.getClass().getResourceAsStream("/warnscale.png")));
+					else if (signage.signage == Signage.SELFSIGNED || signage.signage == Signage.EXPIRED)
+						setIcon(ImageIO.read(this.getClass().getResourceAsStream("/questionscale.png")));
+					else if (signage.signage == Signage.SIGNED)
+						setIcon(ImageIO.read(this.getClass().getResourceAsStream("/okayscale.png")));
+					else setIcon(ImageIO.read(this.getClass().getResourceAsStream("/stopscale.png")));
+
 				}
-				signage = AppletVerifier.verifySignage(archives[0]);
-				System.out.println(signage.signage);
-				if (signage.signage == Signage.UNSIGNED)
+				else
+				{
+					signage = new CertData(Signage.UNSIGNED, null);
 					setIcon(ImageIO.read(this.getClass().getResourceAsStream("/warnscale.png")));
-				else if (signage.signage == Signage.SELFSIGNED || signage.signage == Signage.EXPIRED)
-					setIcon(ImageIO.read(this.getClass().getResourceAsStream("/questionscale.png")));
-				else if (signage.signage == Signage.SIGNED)
-					setIcon(ImageIO.read(this.getClass().getResourceAsStream("/okayscale.png")));
-				else setIcon(ImageIO.read(this.getClass().getResourceAsStream("/stopscale.png")));
+				}
 
 			}
-			else{
-				signage = new CertData(Signage.UNSIGNED, null);
-				setIcon(ImageIO.read(this.getClass().getResourceAsStream("/warnscale.png")));
-			}
-
-		}
-		catch (IOException e1)
-		{
-			signage = new CertData(Signage.UNSIGNED, null);
-			e1.printStackTrace();
-		}
-		
-
-			switch(signage.signage)
+			catch (IOException e1)
 			{
+				signage = new CertData(Signage.UNSIGNED, null);
+				e1.printStackTrace();
+			}
+
+			switch (signage.signage) {
 				case UNSIGNED:
 					setTitleContent("This Applet does not have a valid signature.<br>Do you want to excecute?");
 					break;
@@ -176,98 +180,103 @@ public class AppletAcceptDialog extends InformationFrame {
 				default:
 					setTitleContent("What");
 					break;
-					
+
 			}
 
-		codebase = codeBase;
-		if (isSiteTrusted(codeBase))
-		{
-			this.dialogResult = DIALOG_RUN;
-			return;
-		}
-		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		this.setAlwaysOnTop(true);
-		setTitle("Warning - Security");
-
-		String ar = "";
-		if(archives != null)
-		{
-			for (int i = 0; i < archives.length; i++)
+			codebase = codeBase;
+			if (isSiteTrusted(codeBase))
 			{
-				if (i != 0)
-					ar += ", ";
-				ar += archives[i].toString().replace(codeBase, "");
+				this.dialogResult = DIALOG_RUN;
+				return;
 			}
-		}
-		else ar = className;
-		getContentPane().setLayout(new BorderLayout(0, 0));
+			this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			this.setAlwaysOnTop(true);
+			setTitle("Warning - Security");
 
-		final JCheckBox chckbxDoNotAsk = new JCheckBox("Always trust content from this codebase");
-		getContentPane().add(chckbxDoNotAsk, BorderLayout.SOUTH);
-		
-		JScrollPane scrollPane = new JScrollPane();
-		getContentPane().add(scrollPane, BorderLayout.CENTER);
-		
-		JPanel panel = new JPanel();
-		panel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		scrollPane.setViewportView(panel);
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		//Name
-		panel.add(new JLabel("<html><b>Name:</b> "+name+"</html>"));
-		panel.add(Box.createVerticalStrut(10));
-		//Archives
-		panel.add(new JLabel("<html><b>Archives:</b> "+ar+"</html>"));
-		panel.add(Box.createVerticalStrut(10));
-		
-		panel.add(new JLabel("<html><b>Main Class:</b> "+className+"</html>"));
-		panel.add(Box.createVerticalStrut(10));
-		
-		if(this.signage.cert != null)
-		{
-		
-			String sName = signage.cert.getSubjectDN().getName();
-			String iName = signage.cert.getIssuerDN().getName();
-			System.out.println(sName);
-			System.out.println(iName);
-			//Publisher
-			panel.add(new JLabel("<html><b>Publisher:</b> "+getValByAttributeTypeFromIssuerDN(sName, "O")+"</html>"));
-			panel.add(Box.createVerticalStrut(10));
-			panel.add(new JLabel("<html><b>Issuer:</b> "+getValByAttributeTypeFromIssuerDN(iName, "O")+"</html>"));
-			panel.add(Box.createVerticalStrut(10));
-		}
-		else
-		{
-			panel.add(new JLabel("<html><b>Publisher:</b> UNKNOWN</html>"));
-			panel.add(Box.createVerticalStrut(10));
-		}
-		panel.add(new JLabel("<html><b>Codebase:</b> "+codeBase+"</html>"));
-		pack();
-		this.setLocationRelativeTo(null);
-		getFooterPane().setLayout(null);
-		
-		JButton btnOkay = new JButton("Cancel");
-		btnOkay.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				AppletAcceptDialog.this.dialogResult = AppletAcceptDialog.DIALOG_CANCEL;
-				dispose();
+			String ar = "";
+			if (archives != null)
+			{
+				for (int i = 0; i < archives.length; i++)
+				{
+					if (i != 0)
+						ar += ", ";
+					ar += archives[i].toString().replace(codeBase, "");
+				}
 			}
-		});
-		btnOkay.setBounds(484, 11, 80, 23);
-		getFooterPane().add(btnOkay);
-		
-		JButton button = new JButton("Run");
-		button.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				AppletAcceptDialog.this.dialogResult = AppletAcceptDialog.DIALOG_RUN;
-				dispose();
+			else ar = className;
+			getContentPane().setLayout(new BorderLayout(0, 0));
+
+			final JCheckBox chckbxDoNotAsk = new JCheckBox("Always trust content from this codebase");
+			getContentPane().add(chckbxDoNotAsk, BorderLayout.SOUTH);
+
+			JScrollPane scrollPane = new JScrollPane();
+			getContentPane().add(scrollPane, BorderLayout.CENTER);
+
+			JPanel panel = new JPanel();
+			panel.setBorder(new EmptyBorder(5, 5, 5, 5));
+			scrollPane.setViewportView(panel);
+			panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+			//Name
+			panel.add(new JLabel("<html><b>Name:</b> " + name + "</html>"));
+			panel.add(Box.createVerticalStrut(10));
+			//Archives
+			panel.add(new JLabel("<html><b>Archives:</b> " + ar + "</html>"));
+			panel.add(Box.createVerticalStrut(10));
+
+			panel.add(new JLabel("<html><b>Main Class:</b> " + className + "</html>"));
+			panel.add(Box.createVerticalStrut(10));
+
+			if (this.signage.cert != null)
+			{
+
+				String sName = signage.cert.getSubjectDN().getName();
+				String iName = signage.cert.getIssuerDN().getName();
+				System.out.println(sName);
+				System.out.println(iName);
+				//Publisher
+				panel.add(new JLabel("<html><b>Publisher:</b> " + getValByAttributeTypeFromIssuerDN(sName, "O") + "</html>"));
+				panel.add(Box.createVerticalStrut(10));
+				panel.add(new JLabel("<html><b>Issuer:</b> " + getValByAttributeTypeFromIssuerDN(iName, "O") + "</html>"));
+				panel.add(Box.createVerticalStrut(10));
 			}
-		});
-		button.setBounds(394, 11, 80, 23);
-		getFooterPane().add(button);
-		
-		JLabel lblRunningUntrustedApplets = new JLabel("Running untrusted applets could be a security risk");
-		lblRunningUntrustedApplets.setBounds(10, 15, 310, 14);
-		getFooterPane().add(lblRunningUntrustedApplets);
+			else
+			{
+				panel.add(new JLabel("<html><b>Publisher:</b> UNKNOWN</html>"));
+				panel.add(Box.createVerticalStrut(10));
+			}
+			panel.add(new JLabel("<html><b>Codebase:</b> " + codeBase + "</html>"));
+			pack();
+			this.setLocationRelativeTo(null);
+			getFooterPane().setLayout(null);
+
+			JButton btnOkay = new JButton("Cancel");
+			btnOkay.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					AppletAcceptDialog.this.dialogResult = AppletAcceptDialog.DIALOG_CANCEL;
+					dispose();
+				}
+			});
+			btnOkay.setBounds(484, 11, 80, 23);
+			getFooterPane().add(btnOkay);
+
+			JButton button = new JButton("Run");
+			button.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					AppletAcceptDialog.this.dialogResult = AppletAcceptDialog.DIALOG_RUN;
+					if (chckbxDoNotAsk.isSelected())
+					{
+						setSiteTrusted(codebase);
+					}
+					dispose();
+				}
+			});
+			button.setBounds(394, 11, 80, 23);
+			getFooterPane().add(button);
+
+			JLabel lblRunningUntrustedApplets = new JLabel("Running untrusted applets could be a security risk");
+			lblRunningUntrustedApplets.setBounds(10, 15, 310, 14);
+			getFooterPane().add(lblRunningUntrustedApplets);
+		}
 	}
 
 	@Override()
@@ -280,8 +289,7 @@ public class AppletAcceptDialog extends InformationFrame {
 		else super.setVisible(vis);
 	}
 
-	private String getValByAttributeTypeFromIssuerDN(String dn, String attributeType)
-	{
+	private String getValByAttributeTypeFromIssuerDN(String dn, String attributeType) {
 		LdapName ln;
 		try
 		{
@@ -293,10 +301,12 @@ public class AppletAcceptDialog extends InformationFrame {
 			return null;
 		}
 
-		for(Rdn rdn : ln.getRdns()) {
-		    if(rdn.getType().equalsIgnoreCase(attributeType)) {
-		        return rdn.getValue().toString();
-		    }
+		for (Rdn rdn : ln.getRdns())
+		{
+			if (rdn.getType().equalsIgnoreCase(attributeType))
+			{
+				return rdn.getValue().toString();
+			}
 		}
 		return null;
 	}
