@@ -25,6 +25,8 @@ import java.awt.image.*;
 import java.io.*;
 import java.net.*;
 
+import com.androdome.iadventure.utils.IconManager;
+
 /**
  * This class represents an image as the contents of a replaced element
  * 
@@ -37,6 +39,11 @@ public class ReplacedImage extends ReplacedContent implements ImageObserver {
 	private URL url; //image url
 	private VisualContext ctx; //visual context
 	private BufferedImage img; //the loaded image
+	Graphics2D g = null;
+	int width = 0;
+	int height = 0;
+
+	private boolean error = false;
 
 	/** 
 	 * Creates a new instance of ImgBox 
@@ -51,11 +58,13 @@ public class ReplacedImage extends ReplacedContent implements ImageObserver {
 				{
 					String src = getOwner().getElement().getAttribute("src");
 					System.out.println(base);
-					url = new URL(base, src);
+					url = new URL(base, "adusduh98**&&*78d][][}{}{}{}[]"+src);
 					if (LOAD_IMAGES)
 					{
 						System.err.println("Loading image: " + url);
 						img = javax.imageio.ImageIO.read(url);
+						if(g != null)
+							draw(g, width, height);
 					}
 				}
 				catch (MalformedURLException e)
@@ -63,18 +72,27 @@ public class ReplacedImage extends ReplacedContent implements ImageObserver {
 					System.err.println("ImgBox: URL: " + e.getMessage());
 					img = null;
 					url = null;
+					error = true;
+					if(g != null)
+						draw(g, width, height);
 				}
 				catch (IOException e)
 				{
 					System.err.println("ImgBox: I/O: " + e.getMessage());
 					img = null;
+					error = true;
+					if(g != null)
+						draw(g, width, height);
 				}
 				catch (IllegalArgumentException e)
 				{
 					System.err.println("ImgBox: Format error: " + e.getMessage());
 					img = null;
+					error = true;
+					if(g != null)
+						draw(g, width, height);
 				}
-				owner.draw();
+				
 			}
 		}.start();
 	}
@@ -110,15 +128,20 @@ public class ReplacedImage extends ReplacedContent implements ImageObserver {
 	}
 
 	public void draw(Graphics2D g, int width, int height) {
+		this.g = g;
+		this.width = width;
+		this.height = height;
 		ctx.updateGraphics(g);
 		if (img != null)
 			g.drawImage(img, getOwner().getAbsoluteContentX(), getOwner().getAbsoluteContentY(), width, height, this);
-		else
+		else if(error  == true)
 		{
+			g.drawImage(IconManager.getImage("/stopscale.png"),getOwner().getAbsoluteContentX()+2, getOwner().getAbsoluteContentY()+2,32,32, this);
 			g.setStroke(new BasicStroke(1));
 			g.drawRect(getOwner().getAbsoluteContentX(), getOwner().getAbsoluteContentY(), getOwner().getContentWidth() - 1, getOwner().getContentHeight() - 1);
-			g.drawLine(getOwner().getAbsoluteContentX(), getOwner().getAbsoluteContentY(), getOwner().getAbsoluteContentX() + getOwner().getContentWidth() - 1, getOwner().getAbsoluteContentY() + getOwner().getContentHeight() - 1);
+			/*g.drawLine(getOwner().getAbsoluteContentX(), getOwner().getAbsoluteContentY(), getOwner().getAbsoluteContentX() + getOwner().getContentWidth() - 1, getOwner().getAbsoluteContentY() + getOwner().getContentHeight() - 1);
 			g.drawLine(getOwner().getAbsoluteContentX() + getOwner().getContentWidth() - 1, getOwner().getAbsoluteContentY(), getOwner().getAbsoluteContentX(), getOwner().getAbsoluteContentY() + getOwner().getContentHeight() - 1);
+			*/
 		}
 	}
 
