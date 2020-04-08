@@ -48,7 +48,7 @@ public class ComponentManager {
 			for(Node n : foundInput)
 			{
 				Box box = browser.getViewport().getElementBoxByNode(n);
-				if(box.getNode().getAttributes().getNamedItem("type") != null)
+				if(box != null && box.getNode() != null && box.getNode().getAttributes() != null && box.getNode().getAttributes().getNamedItem("type") != null)
 				{
 					String type = box.getNode().getAttributes().getNamedItem("type").getNodeValue();
 					if(type.equalsIgnoreCase("text"))
@@ -88,11 +88,13 @@ public class ComponentManager {
 				}
 				else
 				{
-					JTextField textField = new JTextField();
-					textField.setBounds(box.getAbsoluteBounds());
-					browser.add(textField);
-					frame.addComponentNodeBinding(new JTextField(), box.getNode());
-					form.add(textField, n);
+					if(box != null){
+						JTextField textField = new JTextField();
+						textField.setBounds(box.getAbsoluteBounds());
+						browser.add(textField);
+						frame.addComponentNodeBinding(new JTextField(), box.getNode());
+						form.add(textField, n);
+					}
 				}
 			}
 
