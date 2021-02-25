@@ -32,6 +32,7 @@ public class Wrapplet extends Applet implements AppletStub {
 	
 	
 
+	
 	public void setParams(Map<String, String> param)
 	{
 		this.customParameters = param;
@@ -115,7 +116,15 @@ public class Wrapplet extends Applet implements AppletStub {
 			Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
 			for(Thread t : threadSet)
 				try{t.interrupt();}catch(Throwable ex){};
-			applet = null;
+			try
+			{
+				this.finalize();
+			}
+			catch (Throwable e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return;
 		}
 	}
